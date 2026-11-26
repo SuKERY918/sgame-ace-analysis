@@ -53,6 +53,7 @@ tools/               # 分析脚本（字符串解密、调用图、算子抽取
   java_grep.py       # 反编译产物按正则筛选
   ascii_strs.py      # ELF 内 ASCII 串提取
   bl_callers.py      # 扫描 .text 中调用指定地址的全部 BL
+  hook_devinfo.js    # Frida 脚本：QIMEI 维度、TDM 设备信息、ACE fake token 与上报原文
 ```
 
 ## 方法

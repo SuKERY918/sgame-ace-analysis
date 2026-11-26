@@ -130,6 +130,8 @@ HARDWARE/ABI 合并成 `"%s,%s"`（`0x241384`），结果缓存在 `0x55F1F0`；
 
 **seccomp**：`0x290270` 输出 `"secc: %d;%d;%d;%d;%d"`（off 15390），五个值来自 `prctl(PR_GET_SECCOMP)` 与 `/proc/self/status` 的 `Seccomp` 字段组合，用于识别"非标准沙箱/容器"。
 
+**系统属性枚举**：`libtersafe.so` 的导入表里同时有 `__system_property_get`、`__system_property_find_nth`、`__system_property_read`。前两个的组合意味着 ACE 不只按名字读属性，还会**遍历全部系统属性**（`find_nth` 从 0 递增取）并与白名单比对。改机框架、云手机、定制 ROM 往往会在 `ro.*`、`persist.*`、`vendor.*` 里留下非标准键，这一条是比读单个属性更强的检测面。`libqimei.so` 只导入 `__system_property_get`，没有 `find_nth`，两者能力不对等。
+
 ### 2.5 fake token
 
 fake token 是 ACE 设备标记里唯一直接引用 QIMEI 的部分。完整链路：
@@ -411,7 +413,35 @@ q16 由服务端计算，输入是注册 JSON（品牌、型号、board、device
 
 设备信息默认关闭：需要 `TDM_USER_DEVICE_INFO_ENABLE`（0x2e8b1a）为真，并调用 `TDMEnableDeviceInfo`（0x65f00）。这是隐私合规开关，实际游戏里由 `DeviceInfoCollect` 在初始化时打开。
 
-### 4.5 MGPA 的 OAID 链
+### 4.5 ACE 侧的 TDM 数据入口
+
+`libtersafe.so` 的明文串里有三条与 TDM 直接相关，且都不在加密表内：
+
+| 偏移 | 字符串 |
+| --- | --- |
+| 0x97551 | `tdm_dev_info` |
+| 0x91AAA | `tdm_report` |
+| 0x96740 | `TotalMem:%d;FreeSpaceTDM:%d` |
+
+三者分别被 `0x4C26D4`、`0x4C309C`、`0x4C2F00` 引用，集中在 `0x4C26xx`–`0x4C30xx` 这一段。`0x4C26C0` 附近的取用流程：
+
+```
+0x4C26C0  bl  0x2DAD4C        ; 取当前环境
+0x4C26C4  bl  0x239BC8        ; 返回 bool，云控/能力判定
+0x4C26C8  tbnz w0, #0, fail
+0x4C26CC  bl  0x22D820        ; 取"数据提供者"对象
+0x4C26D0  adrp x1, #0x97000
+0x4C26D4  add  x1, x1, #0x551 ; "tdm_dev_info"
+0x4C26D8  mov  w2, #1
+0x4C26DC  mov  w3, #1
+0x4C26E0  bl  0x22DA98        ; provider.get("tdm_dev_info", 1, 1)
+```
+
+`0x22DA98` 是一个平坦化的"按名字取值"中间层：先用 `0x22DB80` 在内部表里查名字，再 `0x22DC14` 调用对应实现，两个函数都由 `0x52A4A0` 的间接跳转表分发。`0x22D820` 同样用 `0x52A460` 的跳转表，返回同一个 provider 单例。
+
+这条链解释了为什么 `partI_siblings.md` 说"五库与 ACE 无代码级耦合"却又能在同一条上报里看到 TDM 的字段：ACE 不链接 `libTDataMaster.so`，而是通过自己的 provider 抽象按名字请求数据；名字是明文，值由 TDM 在初始化时注册进去。
+
+### 4.6 MGPA 的 OAID 链
 
 `com.ihoc.mgpa` 是游戏侧另一个上报 SDK。`gradish/o1.java` 的 OAID 获取：
 
@@ -483,7 +513,29 @@ ACE 的 17 槽 + QIMEI 的注册 JSON 合起来，等于给每台设备建了一
 
 ---
 
-## 9. 附录：地址速查
+## 9. 动态验证脚本
+
+`tools/hook_devinfo.js` 是针对本文结论的 Frida 脚本，覆盖四层：
+
+| 层 | 目标 | 观察点 |
+| --- | --- | --- |
+| Java / QIMEI | `com.tencent.qimei.uin.U` 的 `z/z2/o/u/p/m/x` | 每个维度返回值（OZ、kernel、MODEL、getprop） |
+| Java / QIMEI | `Qimei.getQimei16()` / `getQimei36()` | 缓存中的 q16/q36 |
+| Java / TDM | `DeviceInfoHolder.SetStringDeviceInfo` / `GetStringDeviceInfo` | 谁在写 `Fake_Token_TDM_info`，写入时机 |
+| Java / ACE | `TssSdk.getReportData()` / `ioctl(String)` | 上报原文（base64 前）与 ioctl 命令 |
+| Native | `libqimei.so + 0x2B9D4` | `mode` / `mode2`，判断调用形态 |
+| Native | `libtersafe.so + 0x2CCD20` / `0x2CCF54` | fake token 明文（`x:..;q:..;Q:..;o:..` 与 `bt/bd`） |
+
+使用方式：`frida -U -f com.tencent.tmgp.sgame -l tools/hook_devinfo.js --no-pause`，进大厅后观察 `[qimei.*]`、`[tdm.*]`、`[ace.*]` 三类日志。native 偏移与本文一致（imagebase 0），若样本版本变化需重新用 `tools/bl_callers.py` 定位。
+
+预期现象：
+
+1. 冷启动后先出现 `[tdm.set] ...` 一串键值，其中包含 `QIMEI`、`QIMEI36`、`OAID`、`xid`、`AndroidID`、`DeviceID`、`UUID`。
+2. 随后出现 `[qimei.U.o]` / `[qimei.U.z]` 等维度调用，最后 `[qimei.16]` / `[qimei.36]` 才非空（说明 q16 来自服务端响应，不是本地生成）。
+3. `[ace.2ccd20.out]` 应能看到 `x:...;q:...;Q:...;o:...`，`[ace.2ccf54.out]` 能看到再加 `td:`/`bt:`/`bd:` 的完整串。
+4. `[ace.report]` 的返回值是 `id=<字段号>|...` 的 Base64，解码后与 `main.md` 6.2 的字段表对应。
+
+## 10. 附录：地址速查
 
 ### ACE（libtersafe.so）
 
