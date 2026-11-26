@@ -814,6 +814,7 @@ SDK 从自身数据目录读取一组本地配置/缓存文件（路径由 `sub_
 | 规则算子 101 条 | **101 条唯一算子**成立（子代理报的 86 项是子集），完整表 `out/ops.tsv` | `0x4E3CAC` 反编译 + `ops.py` |
 | 关闭命令 `CloseCloudPhoneScan → +0x3B5` | 正确为 `+0x3B6`；`+0x3B5` 属 `CloseAntiProfiler` | `0x1BDB80/0x1BDB98` |
 | GPU 采集走 `getDeviceConfigurationInfo` | 正确，且只取 GLES 版本字符串；无 EGL/glGetString | `0x2CABF4` |
+| 字符串表 2,868 条、98 组 (E,C)、密文止于约 60,586 | **3,198 条**、99–101 组、最后一条非空记录止于 60,947；记录格式 `[key][len^key][cipher][check]`，尾字节校验 `(check^cs^key)==0xFF`。旧表漏掉了 `ft_oaid`(58,581)、`AndroidIdErr`(52,998) 等尾部记录 | `docs/tersafe_strings.md`、`docs/strings.tsv` |
 
 ---
 

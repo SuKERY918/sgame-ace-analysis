@@ -29,6 +29,8 @@
 
 9. **设备标记是三通道并行、单点交汇。** ACE（`libtersafe`）17 槽硬件画像、QIMEI（`libqimei`）12 维注册指纹、TDM（`libTDataMaster`）26 字段运营画像，三条链互不调用，只在 `Fake_Token_TDM_info` 处交汇：ACE 从 TDM 写入的文件里读 `xid/q16/q36/oaid`，拼成 `x:..;q:..;Q:..;o:..`，再包 `bt:<boot_id>;bd:<brand>`，随检测事件上报。q16/q36 由服务端按注册 JSON 计算并下发（本地只缓存 `A3`/`A153`），客户端没有生成路径；刷机只清本地缓存，清不掉服务端图谱。详见 `docs/devinfo_deep.md`。
 
+10. **主字符串表已完全离线还原。** `libtersafe` 的 3,198 条加密记录落在 `.rodata` 的 `0xFBCB0`–`0x10C234`，格式为 `[key][len^key][cipher][check]`，逐字节递推 `k_{j+1}=(((k_j+j)&0xFF)^E)+C`，`(E,C)` 共 99–101 组（对应 `0x4E64D0..0x4ED3CC` 的封印装函数），尾部用 `(check^cs^key)==0xFF` 校验。据此解出全部路径、属性名、模块名、协议字段与格式串（3,246 个调用点、2,110 个 idx、876 个函数），并修正旧报告的 2,868 条为 3,198 条——`ft_oaid`(58,581)、`AndroidIdErr`(52,998) 正在旧表范围之外。详见 `docs/tersafe_strings.md`，全表见 `docs/strings.tsv`。
+
 ## 仓库结构
 
 ```
@@ -46,6 +48,9 @@ docs/
   partI_siblings.md  # 伴生库身份：libsaf / libTDataMaster / libqimei / libckguard / libencrypt
   qimei.md           # libqimei 设备标记机制：字符串表解密、398 条全表、280 个引用点、QIMEI 组装与上报
   devinfo_deep.md    # 设备标记三通道：ACE 17 槽、QIMEI 12 维/注册 JSON、TDM 26 字段、fake token 全链
+  tersafe_strings.md # 主字符串表还原：记录格式、参数族、校验、全量重建与锚点验证
+  strings.tsv        # 3198 条主表明文（offset/key/len/E/C/string）
+  strings_usage.tsv  # 3246 个字符串引用点（func/call/idx/string）
   partJ_blob.md      # 下发 blob 的容器、段表、.img 原生码与 RSA-2048 验签
 tools/               # 分析脚本（字符串解密、调用图、算子抽取、blob 解析等，按需修改路径后运行）
   so_elf.py          # ELF 读取、反汇编、.eh_frame_hdr 函数边界恢复
@@ -53,6 +58,8 @@ tools/               # 分析脚本（字符串解密、调用图、算子抽取
   java_grep.py       # 反编译产物按正则筛选
   ascii_strs.py      # ELF 内 ASCII 串提取
   bl_callers.py      # 扫描 .text 中调用指定地址的全部 BL
+  tersafe_strings.py # 主表解密：记录切分、参数族提取与补全、(E,C) 消歧、全表导出
+  tersafe_usage.py   # 主表引用点：BL 目标回溯 MOV W0,#idx，按函数归组导出
   hook_devinfo.js    # Frida 脚本：QIMEI 维度、TDM 设备信息、ACE fake token 与上报原文
 ```
 
@@ -60,8 +67,8 @@ tools/               # 分析脚本（字符串解密、调用图、算子抽取
 
 - **函数边界**：样本已 strip，用 `.eh_frame_hdr` 恢复 16284 个函数入口（IDA 报 17780 个，差额是无 unwind
   信息的小函数）。
-- **字符串**：两套编码。主表 100 个解密函数 + 98 组 `(E,C)` 参数，DFS 定界补齐后得到 2868 条记录；
-  内联串用固定的逐字节异或（密钥随解码器不同，已知 `0xAB/0xC6/0xE5/0xF3`），补出 945 条，合计 3997 条。
+- **字符串**：两套编码。主表 3,198 条记录、99–101 组 `(E,C)` 参数，记录按 `[key][len^key][cipher][check]` 连续切分、尾字节校验，已全量还原（见 `docs/tersafe_strings.md`）；
+  内联串用固定的逐字节异或（密钥随解码器不同，已知 `0xAB/0xC6/0xE5/0xF3`），补出 945 条，合计约 4143 条。
 - **代码**：多数检测函数是控制流平坦化状态机，IDA 反编译经常失败，只能逐块读汇编；`capstone` 扫描
   `.text` 找 `BL` 目标与 `MOV W0,#imm` 调用点，把字符串与函数对应起来。
 - **动态**：Frida（含 patch 探测函数、跳过非法 free）、`logcat`/tombstone、`tcpdump` 抓包、
