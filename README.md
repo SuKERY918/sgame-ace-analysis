@@ -27,6 +27,8 @@
 
 8. **伴生库 `libqimei` 才是设备标记的主链。** 字符串表用「每条记录 3 字节头 + 单字节变种 XOR」加密，9469 字节解出 398 条明文；内容覆盖 root/su、Xposed/LSPosed/Frida/Riru/Zygisk、模拟器与云手机、群控自动化（minitouch/scrcpy/按键精灵）、代理、无障碍、Widevine，以及 `/data/system/*` 的 inode/mtime 指纹与腾讯系 openid。QIMEI（q16/q36）以 ChaCha20 + RSA-2048 封包上报，服务端用 QIMEI + openid 建设备图谱——刷机与恢复出厂只清本地缓存，清不掉图谱。详见 `docs/qimei.md`。
 
+9. **设备标记是三通道并行、单点交汇。** ACE（`libtersafe`）17 槽硬件画像、QIMEI（`libqimei`）12 维注册指纹、TDM（`libTDataMaster`）26 字段运营画像，三条链互不调用，只在 `Fake_Token_TDM_info` 处交汇：ACE 从 TDM 写入的文件里读 `xid/q16/q36/oaid`，拼成 `x:..;q:..;Q:..;o:..`，再包 `bt:<boot_id>;bd:<brand>`，随检测事件上报。q16/q36 由服务端按注册 JSON 计算并下发（本地只缓存 `A3`/`A153`），客户端没有生成路径；刷机只清本地缓存，清不掉服务端图谱。详见 `docs/devinfo_deep.md`。
+
 ## 仓库结构
 
 ```
@@ -43,8 +45,14 @@ docs/
   partH_misc.md      # live / cps_new / cs_vm / wb_daemon / ob_normal / win_data_sync / inf_sca / gp5
   partI_siblings.md  # 伴生库身份：libsaf / libTDataMaster / libqimei / libckguard / libencrypt
   qimei.md           # libqimei 设备标记机制：字符串表解密、398 条全表、280 个引用点、QIMEI 组装与上报
+  devinfo_deep.md    # 设备标记三通道：ACE 17 槽、QIMEI 12 维/注册 JSON、TDM 26 字段、fake token 全链
   partJ_blob.md      # 下发 blob 的容器、段表、.img 原生码与 RSA-2048 验签
 tools/               # 分析脚本（字符串解密、调用图、算子抽取、blob 解析等，按需修改路径后运行）
+  so_elf.py          # ELF 读取、反汇编、.eh_frame_hdr 函数边界恢复
+  qimei_scan.py      # 字符串表解密 + 取串点/调用点扫描
+  java_grep.py       # 反编译产物按正则筛选
+  ascii_strs.py      # ELF 内 ASCII 串提取
+  bl_callers.py      # 扫描 .text 中调用指定地址的全部 BL
 ```
 
 ## 方法
