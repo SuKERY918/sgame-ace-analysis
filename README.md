@@ -25,6 +25,8 @@
    `/data/local/tmp` 会被文件检测直接命中；本地"自杀"路径是一次故意的 `free()` 非法指针（可被运行时拦截，
    拦截后存活 55–57 s），但最终终止由服务端下令。
 
+8. **伴生库 `libqimei` 才是设备标记的主链。** 字符串表用「每条记录 3 字节头 + 单字节变种 XOR」加密，9469 字节解出 398 条明文；内容覆盖 root/su、Xposed/LSPosed/Frida/Riru/Zygisk、模拟器与云手机、群控自动化（minitouch/scrcpy/按键精灵）、代理、无障碍、Widevine，以及 `/data/system/*` 的 inode/mtime 指纹与腾讯系 openid。QIMEI（q16/q36）以 ChaCha20 + RSA-2048 封包上报，服务端用 QIMEI + openid 建设备图谱——刷机与恢复出厂只清本地缓存，清不掉图谱。详见 `docs/qimei.md`。
+
 ## 仓库结构
 
 ```
@@ -40,6 +42,7 @@ docs/
   partG_account.md   # info / tablet / user_tag / ksat / pe_rep / env_chk / info_publisher
   partH_misc.md      # live / cps_new / cs_vm / wb_daemon / ob_normal / win_data_sync / inf_sca / gp5
   partI_siblings.md  # 伴生库身份：libsaf / libTDataMaster / libqimei / libckguard / libencrypt
+  qimei.md           # libqimei 设备标记机制：字符串表解密、398 条全表、280 个引用点、QIMEI 组装与上报
   partJ_blob.md      # 下发 blob 的容器、段表、.img 原生码与 RSA-2048 验签
 tools/               # 分析脚本（字符串解密、调用图、算子抽取、blob 解析等，按需修改路径后运行）
 ```
