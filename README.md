@@ -8,9 +8,11 @@
 
 ## 核心结论
 
-1. **只采集、不判定。** 客户端没有"判定作弊"的代码路径：它把 root/模拟器/Hook/调试/设备指纹等检测结果编码成
+1. **上报与判罚分离，但并非完全没有本地判定。** 绝大多数检测结果只编码成
    `id=<字段号>|k=v|...` 的文本项，Base64 + 固定密钥异或后经裸 TCP（端口 443，但**不是 TLS**）发给
-   `*.cschannel.anticheatexpert.com`，判罚在服务端。
+   `*.cschannel.anticheatexpert.com`，封禁判罚在服务端。但内联字符串里存在 6 类面向玩家的英文弹窗文案
+   （root、解锁设备、GPU Profiler、自动点击器、模拟器、恶意软件），说明这 6 项**在客户端就会本地拦截**，
+   其中自动点击器那一项要求玩家拖动滑块到指定数字，属于交互式人机验证而不是直接封禁（见结论 11）。
 2. **双套字符串加密 + 全库控制流平坦化**，另外还有一层运行时保护：`libtprt.so` 提供 OBJ_VM
    （装载器 + 符号绑定 + 调用转发），负责执行云端下发的原生模块。
 3. **41 个特征模块 / 9 个检查任务 / 101 个云控规则算子 / 88 个数字命令 + 22 个文本命令**，
@@ -31,6 +33,8 @@
 
 10. **主字符串表已完全离线还原。** `libtersafe` 的 3,198 条加密记录落在 `.rodata` 的 `0xFBCB0`–`0x10C234`，格式为 `[key][len^key][cipher][check]`，逐字节递推 `k_{j+1}=(((k_j+j)&0xFF)^E)+C`，`(E,C)` 共 99–101 组（对应 `0x4E64D0..0x4ED3CC` 的封印装函数），尾部用 `(check^cs^key)==0xFF` 校验。据此解出全部路径、属性名、模块名、协议字段与格式串（3,246 个调用点、2,110 个 idx、876 个函数），并修正旧报告的 2,868 条为 3,198 条——`ft_oaid`(58,581)、`AndroidIdErr`(52,998) 正在旧表范围之外。详见 `docs/tersafe_strings.md`，全表见 `docs/strings.tsv`。
 
+11. **第二套"内联字符串"也已全量还原，共 875 条。** 这类串不建索引，直接以字面量地址内联在调用点，每条配一个自带密钥常量的独立解码器（`mov wN,#K; strb wN,[sp,#n]` + 逐字节 `c[i]^(K+i)`）。扫描 4,430 个 `.rodata` 引用点、975 个解密调用，解出 Hook 框架清单（frida-gadget / hookzz / sandhook / xhook / substrate / epic / whale / fake-linker-21/26/30 / AndroidCydia）、Titan 系列云游戏 HAL 探针（`camera.titan.jpeg.so`、`vulkan.titan.so`、`/ueventd.titan.rc123` 等 9 个）、`/proc/*/task/*/wchan` 线程阻塞探测、`/./proc/self/maps` 路径规避写法、`vap_2` 分身签名比对，以及 6 条本地拦截弹窗文案。详见 `docs/inline_strings.md`，全表见 `docs/inline_strings.tsv`。
+
 ## 仓库结构
 
 ```
@@ -49,8 +53,10 @@ docs/
   qimei.md           # libqimei 设备标记机制：字符串表解密、398 条全表、280 个引用点、QIMEI 组装与上报
   devinfo_deep.md    # 设备标记三通道：ACE 17 槽、QIMEI 12 维/注册 JSON、TDM 26 字段、fake token 全链
   tersafe_strings.md # 主字符串表还原：记录格式、参数族、校验、全量重建与锚点验证
+  inline_strings.md  # 内联字符串表还原：解码器族、调用点形态、875 条明文与分类
   strings.tsv        # 3198 条主表明文（offset/key/len/E/C/string）
   strings_usage.tsv  # 3246 个字符串引用点（func/call/idx/string）
+  inline_strings.tsv # 875 条内联串明文（va/key/len/string）
   partJ_blob.md      # 下发 blob 的容器、段表、.img 原生码与 RSA-2048 验签
 tools/               # 分析脚本（字符串解密、调用图、算子抽取、blob 解析等，按需修改路径后运行）
   so_elf.py          # ELF 读取、反汇编、.eh_frame_hdr 函数边界恢复
@@ -60,6 +66,7 @@ tools/               # 分析脚本（字符串解密、调用图、算子抽取
   bl_callers.py      # 扫描 .text 中调用指定地址的全部 BL
   tersafe_strings.py # 主表解密：记录切分、参数族提取与补全、(E,C) 消歧、全表导出
   tersafe_usage.py   # 主表引用点：BL 目标回溯 MOV W0,#idx，按函数归组导出
+  inline_strings.py  # 内联串还原：adrp+add→密文址、mov w1,#len→长度、bl→解码器取密钥
   hook_devinfo.js    # Frida 脚本：QIMEI 维度、TDM 设备信息、ACE fake token 与上报原文
 ```
 
@@ -68,7 +75,7 @@ tools/               # 分析脚本（字符串解密、调用图、算子抽取
 - **函数边界**：样本已 strip，用 `.eh_frame_hdr` 恢复 16284 个函数入口（IDA 报 17780 个，差额是无 unwind
   信息的小函数）。
 - **字符串**：两套编码。主表 3,198 条记录、99–101 组 `(E,C)` 参数，记录按 `[key][len^key][cipher][check]` 连续切分、尾字节校验，已全量还原（见 `docs/tersafe_strings.md`）；
-  内联串用固定的逐字节异或（密钥随解码器不同，已知 `0xAB/0xC6/0xE5/0xF3`），补出 945 条，合计约 4143 条。
+  内联串不建索引、按地址引用，每条配独立解码器与内联密钥，扫描 `adrp+add`/`mov w1,#len`/`bl` 三元组后解出 875 条唯一明文（见 `docs/inline_strings.md`）。合计约 4,073 条。
 - **代码**：多数检测函数是控制流平坦化状态机，IDA 反编译经常失败，只能逐块读汇编；`capstone` 扫描
   `.text` 找 `BL` 目标与 `MOV W0,#imm` 调用点，把字符串与函数对应起来。
 - **动态**：Frida（含 patch 探测函数、跳过非法 free）、`logcat`/tombstone、`tcpdump` 抓包、
