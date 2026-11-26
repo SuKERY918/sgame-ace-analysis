@@ -441,6 +441,8 @@ q16 由服务端计算，输入是注册 JSON（品牌、型号、board、device
 
 这条链解释了为什么 `partI_siblings.md` 说"五库与 ACE 无代码级耦合"却又能在同一条上报里看到 TDM 的字段：ACE 不链接 `libTDataMaster.so`，而是通过自己的 provider 抽象按名字请求数据；名字是明文，值由 TDM 在初始化时注册进去。
 
+用 `readelf` 复核过依赖关系：`libtersafe.so` 的 `DT_NEEDED` 只有 `liblog/libc/libm/libdl`，既不链接 `libTDataMaster.so` 也不链接 `libqimei.so`，所以"数据面交汇、代码面隔离"这个判断成立。补充一点：`libtersafe.so` 里连 `TDataMaster`/`libqimei` 这类库名都不存在（主表 3,198 条与内联 875 条全部查过），因此它也不是通过 `dlopen` 去加载这两个库的——`0x4E11C8` 那个唯一的 dlopen 包装没有直接的 BL 调用者，库名参数始终没定位到。
+
 ### 4.6 MGPA 的 OAID 链
 
 `com.ihoc.mgpa` 是游戏侧另一个上报 SDK。`gradish/o1.java` 的 OAID 获取：
