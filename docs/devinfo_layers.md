@@ -251,6 +251,9 @@ Java 侧对应注入 API 是 `Lcom/tencent/tp/m;->d(String)` = `a("*#06#:" + ime
 | 24877 | `/libmsaoaidsec.so` | `0x264038`（APK 内不含该 so） |
 | 34468 | `tdm_cache.dat` | `0x4E4B2C` |
 | 32413 | `root=%d\|x86=%d\|apk_cnt=%d\|adb=%d\|machine=%s\|sys_ver=%s\|root_record=%d` | `0x4CBB2C` |
+| 46601 / 50024 | `force_fake_token` / `fake_token_sensor` | `0x2C89D4` / `0x2CBBFC` |
+| 51301 | `/proc/sys/kernel/random/boot_id` | `0x2CCE84`（槽 17 之后的 `bt:` 包装） |
+| 51374 / 51396 / 51402 / 51410 / 51420 | `Fake_Token_TDM_info` / `xid` / `QiMaM` / `QIMEI36` / `OsEz` | 全部由 `0x2CCD20` 读取（`OsEz` 另被槽 17 的 `0x2CC6C4` 读一次） |
 
 ---
 
@@ -354,6 +357,6 @@ python tools/tersafe_devkeys.py docs/strings.tsv docs/strings_usage.tsv
 
 1. `Fake_Token_TDM_info` 的写入点（CFF + 间接调用）。
 2. `iAppMachUUID`/`iAppMachOUUID` 的 16 字节输入源。
-3. QIMEI 是否存在第二张表/第二套取串器（`devinfo_deep.md` 提到的 `0x2B9D4` 尚未与 `0x1EFB8` 打通）。
+3. QIMEI 的 60 KB 采集总装函数 `0x2B9D4` 与字典取串器 `0x1EFB8` 之间的调用关系尚未完全打通（`devinfo_deep.md` §8 已列为未解）。
 4. 云端 `fp.js` 的指纹维度（需动态抓取）。
 5. 本文所有"运行时行为"均为静态推断，未做真机验证。
