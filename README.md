@@ -55,6 +55,7 @@ docs/
   qimei.md           # libqimei 设备标记机制：字符串表解密、398 条全表、280 个引用点、QIMEI 组装与上报
   devinfo_deep.md    # 设备标记三通道：ACE 17 槽、QIMEI 12 维/注册 JSON、TDM 26 字段、fake token 全链
   devinfo_layers.md  # 设备标记六层分析：系统层可得性、MSDK 闸门、QIMEI 双栈与 JS 指纹、TDM 占位值、ACE 17 槽与 Fake_Token、稳定性矩阵
+  devinfo_oz.md      # 静态补遗：ObfQos 事件对象、TSS→COREREPORT 遥测、libqimei OZ 的 k 指编码、iAppMachUUID 死表项
   tersafe_strings.md # 主字符串表还原：记录格式、参数族、校验、全量重建与锚点验证
   inline_strings.md  # 内联字符串表还原：解码器族、调用点形态、875 条明文与分类
   strings.tsv        # 3198 条主表明文（offset/key/len/E/C/string）
