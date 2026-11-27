@@ -27,13 +27,15 @@
    `/data/local/tmp` 会被文件检测直接命中；本地"自杀"路径是一次故意的 `free()` 非法指针（可被运行时拦截，
    拦截后存活 55–57 s），但最终终止由服务端下令。
 
-8. **伴生库 `libqimei` 才是设备标记的主链。** 字符串表用「每条记录 3 字节头 + 单字节变种 XOR」加密，9469 字节解出 398 条明文；内容覆盖 root/su、Xposed/LSPosed/Frida/Riru/Zygisk、模拟器与云手机、群控自动化（minitouch/scrcpy/按键精灵）、代理、无障碍、Widevine，以及 `/data/system/*` 的 inode/mtime 指纹与腾讯系 openid。QIMEI（q16/q36）以 ChaCha20 + RSA-2048 封包上报，服务端用 QIMEI + openid 建设备图谱——刷机与恢复出厂只清本地缓存，清不掉图谱。详见 `docs/qimei.md`。
+8. **伴生库 `libqimei` 才是设备标记的主链。** 字符串表用「每条记录 3 字节头 + 单字节变种 XOR」加密，9469 字节解出 398 条明文；内容覆盖 root/su、Xposed/LSPosed/Frida/Riru/Zygisk、模拟器与云手机、群控自动化（minitouch/scrcpy/按键精灵）、代理、无障碍，以及 `/data/system/*` 的 inode/mtime 指纹与腾讯系 openid。QIMEI（q16/q36）以 ChaCha20 + RSA-2048 封包上报，服务端用 QIMEI + openid 建设备图谱——刷机与恢复出厂只清本地缓存，清不掉图谱。字典里另有 Widevine 五条串，但**不构成本包的读取路径**（`DT_NEEDED` 无 `libmediandk.so`，`dlopen`/`dlsym` 只解析 `__system_property_find`/`read`），属遗留条目，详见 `docs/qimei.md` 与 `docs/devinfo_layers.md` §4.2。
 
-9. **设备标记是三通道并行、单点交汇。** ACE（`libtersafe`）17 槽硬件画像、QIMEI（`libqimei`）12 维注册指纹、TDM（`libTDataMaster`）26 字段运营画像，三条链互不调用，只在 `Fake_Token_TDM_info` 处交汇：ACE 从 TDM 写入的文件里读 `xid/q16/q36/oaid`，拼成 `x:..;q:..;Q:..;o:..`，再包 `bt:<boot_id>;bd:<brand>`，随检测事件上报。q16/q36 由服务端按注册 JSON 计算并下发（本地只缓存 `A3`/`A153`），客户端没有生成路径；刷机只清本地缓存，清不掉服务端图谱。详见 `docs/devinfo_deep.md`。
+9. **设备标记是三通道并行、单点交汇。** ACE（`libtersafe`）17 槽硬件画像、QIMEI（`libqimei`）12 维注册指纹、TDM（`libTDataMaster`）26 字段运营画像，三条链互不调用，只在 `Fake_Token_TDM_info` 处交汇：ACE 取其 `xid`、`QiMaM`(q16)、`QIMEI36`(q36)、`OsEz`(oaid) 四个子键，拼成 `x:..;q:..;Q:..;o:..`，再包 `bt:<boot_id>;bd:<brand>`，随检测事件上报。q16/q36 由服务端按注册 JSON 计算并下发（本地只缓存 `A3`/`A153`），客户端没有生成路径；刷机只清本地缓存，清不掉服务端图谱。**该容器的写入方尚未定位**——三个键名在 12 个 so 与 6 个 dex 的明文中均为 0 命中，`libTDataMaster` 只有 `tdm_cache.%d.dat`，旧版"由 TDM 写入文件"的说法不成立，详见 `docs/devinfo_deep.md` 与 `docs/devinfo_layers.md` §6.3。
 
 10. **主字符串表已完全离线还原。** `libtersafe` 的 3,198 条加密记录落在 `.rodata` 的 `0xFBCB0`–`0x10C234`，格式为 `[key][len^key][cipher][check]`，逐字节递推 `k_{j+1}=(((k_j+j)&0xFF)^E)+C`，`(E,C)` 共 99–101 组（对应 `0x4E64D0..0x4ED3CC` 的封印装函数），尾部用 `(check^cs^key)==0xFF` 校验。据此解出全部路径、属性名、模块名、协议字段与格式串（3,246 个调用点、2,110 个 idx、876 个函数），并修正旧报告的 2,868 条为 3,198 条——`ft_oaid`(58,581)、`AndroidIdErr`(52,998) 正在旧表范围之外。详见 `docs/tersafe_strings.md`，全表见 `docs/strings.tsv`。
 
 11. **第二套"内联字符串"也已全量还原，共 875 条。** 这类串不建索引，直接以字面量地址内联在调用点，每条配一个自带密钥常量的独立解码器（`mov wN,#K; strb wN,[sp,#n]` + 逐字节 `c[i]^(K+i)`）。扫描 4,430 个 `.rodata` 引用点、975 个解密调用，解出 Hook 框架清单（frida-gadget / hookzz / sandhook / xhook / substrate / epic / whale / fake-linker-21/26/30 / AndroidCydia）、Titan 系列云游戏 HAL 探针（`camera.titan.jpeg.so`、`vulkan.titan.so`、`/ueventd.titan.rc123` 等 9 个）、`/proc/*/task/*/wchan` 线程阻塞探测、`/./proc/self/maps` 路径规避写法、`vap_2` 分身签名比对，以及 6 条本地拦截弹窗文案。详见 `docs/inline_strings.md`，全表见 `docs/inline_strings.tsv`。
+
+12. **设备标记的完整分层已补齐：系统标识 → MSDK 汇聚 → QIMEI 主键 → ACE 校验。** Java 侧把 `AndroidID`/`WiFiMacAddress`/`Imei`/`Model`/`Oaid`/`Imsi`/`Cid` 写进 QIMEI 的唯一入口是 MSDK 的 `sensitive_json_info`（`BeaconReport.setSensitiveInfo` 逐键双写 Beacon 与 QimeiStrategy，且 `<init>` 先 `setUserAgreePrivacy(false)`）；QIMEI 还有一条 WebView 远程 JS 指纹通道（云端 `fp.js`/`my.html` → `javascript:window.qimeiCallback('<hex>')`）；TDM 的 `GetDeviceID` 返回 `"Unknown"`、`GetMacAddress` 返回 `"TDM_NULL"`、`TDataSign = MD5(android_id)`；本包**不读 IMEI、不读序列号、不读 Widevine 设备 ID**。详见 `docs/devinfo_layers.md`。
 
 ## 仓库结构
 
@@ -52,6 +54,7 @@ docs/
   partI_siblings.md  # 伴生库身份：libsaf / libTDataMaster / libqimei / libckguard / libencrypt
   qimei.md           # libqimei 设备标记机制：字符串表解密、398 条全表、280 个引用点、QIMEI 组装与上报
   devinfo_deep.md    # 设备标记三通道：ACE 17 槽、QIMEI 12 维/注册 JSON、TDM 26 字段、fake token 全链
+  devinfo_layers.md  # 设备标记六层分析：系统层可得性、MSDK 闸门、QIMEI 双栈与 JS 指纹、TDM 占位值、ACE 17 槽与 Fake_Token、稳定性矩阵
   tersafe_strings.md # 主字符串表还原：记录格式、参数族、校验、全量重建与锚点验证
   inline_strings.md  # 内联字符串表还原：解码器族、调用点形态、875 条明文与分类
   strings.tsv        # 3198 条主表明文（offset/key/len/E/C/string）
@@ -68,6 +71,9 @@ tools/               # 分析脚本（字符串解密、调用图、算子抽取
   tersafe_usage.py   # 主表引用点：BL 目标回溯 MOV W0,#idx，按函数归组导出
   inline_strings.py  # 内联串还原：adrp+add→密文址、mov w1,#len→长度、bl→解码器取密钥
   hook_devinfo.js    # Frida 脚本：QIMEI 维度、TDM 设备信息、ACE fake token 与上报原文
+  dex_devkeys.py     # dex 侧设备标识键归属：按关键词扫 const-string，输出 类->方法 与命中项
+  tersafe_devkeys.py # ACE 设备标识词表：idx→串 与 strings_usage 引用点连接，标注无引用项
+  qimei_table_audit.py # libqimei 字典审计：记录切分、取串点覆盖统计与死区块定位
 ```
 
 ## 方法

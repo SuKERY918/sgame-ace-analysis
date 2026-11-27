@@ -16,6 +16,8 @@
 
 五个库都不是 ACE/TSS 本体，也没有与 libtersafe 的代码级耦合：`libsaf` 是改名后的 OpenAL Soft 音频库，`libTDataMaster` 是腾讯 TDM（数据大师）通用上报 SDK，`libqimei` 是 QIMEI 设备指纹 SDK，`libckguard` 是腾讯视频 TVKPlayer 的 CKey 授权校验，`libencrypt` 是 QQ/TGA 网络层的 OICQ-TEA。交集只在数据面：TDM 采集 OAID/QIMEI/IMEI/序列号/位置，并按 `tss_tmp/`、`ano_tmp/` 这套与 TSS 相同的目录约定读 `comm.dat`、`tss_ano.dat`；QIMEI 经 Java `GetQIMEI` 把标识交给 TDM。检测、云控（`nj./tyf.cschannel.anticheatexpert.com`）与 443 自有协议只存在于 libtersafe。
 
+> **校正（12.1.1.1 复核）**：TDM 的"采集 IMEI/序列号"需限定为**字段位存在但取不到值**。Java 侧 `Lcom/tdatamaster/tdm/device/DeviceInfoCollect` 的 `GetDeviceID` 直接返回 `new DeviceInfo("Unknown",3)`、`GetMacAddress` 直接返回 `"TDM_NULL"`，`GetTDataSign` = `MD5(android_id)`（大写、未补零）；TDM 的 q16/q36 也走自己那份 `libtdmbeaconid.so`，不调 libqimei。详见 `docs/devinfo_layers.md` §5。
+
 ## 2. 与 ACE 是否同源：逐项检查
 
 | 检查项 | 结果 |
@@ -43,6 +45,7 @@ qimei 的字符串几乎全经加密表下发，故"无字面量"不能反证"�
 - 上报地址不写死：`TDMSetRouteAddress` 0x65f68 把 Java 串写入 `ITDataMasterV4` 的 vtable+96（0x66020），默认路由来自游戏配置。
 - 隐私开关：键 `TDM_USER_DEVICE_INFO_ENABLE` 0x2e8b1a，判定函数 sub_9C4D4 0x9c4d4，日志 `is enable device info: %d` 0x9c75c；未开启打印 `* Notice :` 0x2e8bb4、`* TDM will report without device info` 0x2e8bbf、`* please call EnableDeviceInfo(true) after user agreed privacy agreement` 0x2e8be5 —— 默认不上报设备信息，需用户同意后显式开启。
 - 采集字段：`tdm_qimei` 0x2e61b5、`tdm_qimei36` 0x2e61bf、`tdm_android_qimei` 0x2e61cb、`OAID` 0x2e61dd、`tdm_android_oaid` 0x2e61e2、`tdm_android_imei` 0x2e61f3、`tdm_android_id` 0x2e6204、`mac_addr` 0x2e18fd、`latitude` 0x2e1945、`longitude` 0x2e194e、`tdm_serial_number` 0x2e1b7e、`cpu_name` 0x2e199a、`space_total`/`space_avail` 0x2e1982/0x2e198e、`tdm_dev_uuid` 0x2e09cc、`tdm_network_type` 0x2e0a2a、`tdm_operator` 0x2e0a3b、`GetMSDKOpenid` 0x2e17f5。
+  > 注：以上是**键名清单**（native 侧共 94 条 `tdm_*` 键），不代表都有值；`tdm_android_imei`/`tdm_serial_number` 对应的 Java 取值方法在本包返回占位串，见 §1 校正。
 - 与 QIMEI：sub_99B88 在 0x99cb8 反射调用 Java `GetQIMEI` 0x2e8a11，签名 `(Landroid/content/Context;)Lcom/tdatamaster/tdm/device/DeviceInfo;` 0x2e8880（helper sub_95E08）——不 dlopen libqimei，由 Java 层回传。
 - 与 TSS（最实质一条）：sub_B15D4 0xb15d4 按序探测 `ano_tmp/comm.dat` 0x2e9d0e → `tss_tmp/comm.dat` 0x2e9d1f → `comm.dat` → `tss_ano.dat` → `tss_tmp/tss_ano.dat` 0x2e9d30 → `ano_tmp/tss_ano.dat` 0x2e9d44；`tss_`/`ano_` 目录名与 TSS（libtersafe 的 `tss_*` 命名）同源，二者共用落盘约定（推断：TDM 是 TSS/ACE 的通用上报通道，旧目录名保留兼容）。
 - 非检测：`/proc/%d/maps` 0x2e840f 仅出现在 sub_91D7C 0x91d7c（GCloud::Plugin::PluginReport 侧），配 sub_920BC 0x920bc 的 `%lu-%lu %4s %*x %*x:%*x %*d %n` 0x2e841d 解析，用于枚举模块上报；`prctl(16=PR_GET_NAME)` 0xad87c（sub_AD850）只取进程名；全库无 `ptrace`/`TracerPid`/`frida`/`xposed`/`magisk`/`root`/`emulator` 字面量，也无 fork/execl/kill/ptrace 调用点。

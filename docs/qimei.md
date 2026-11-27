@@ -172,7 +172,8 @@ const char *get_str(uint32_t off);   // sub_1EFB8；off < 0x24fd
 1. **QIMEI 作为主键**：首次注册时服务端把 QIMEI 与设备画像绑定；此后同一台机器重新生成的新 QIMEI 会被「硬件锚点」关联回旧记录（AAID/VAID 由系统 provider 维护、IMEI/MEID 在 modem 分区、序列号在 bootloader 区、部分设备 MAC 出厂烧录）。
 2. **腾讯账号维度**：`open_id`/`wxOpenId`/`qqOpenId`、`LoginInfoManager`、`MSDKLogin`、`getLastLoginUserInfo`、K歌/QQ音乐的账号类——同一账号在不同设备上的登录记录会合并。
 3. **文件系统指纹**：`/data/system/*` 的 inode、mtime、链接数在恢复出厂后整体变化，但服务端历史记录仍在；这解释「换了新指纹仍被认出来」。
-4. **DRM/Widevine**：`AMediaDrm_createByUUID` 取 Widevine 设备唯一 ID（`getPropertyByteArray`），该 ID 在 TEE 内生成，刷机不变。
+4. ~~**DRM/Widevine**：`AMediaDrm_createByUUID` 取 Widevine 设备唯一 ID（`getPropertyByteArray`），该 ID 在 TEE 内生成，刷机不变。~~
+   > **校正（复核 12.1.1.1 后）**：本条不成立。`libqimei.so` 的 `DT_NEEDED` 只有 `libandroid.so/liblog.so/libz.so/libm.so/libdl.so/libc.so`，**没有 `libmediandk.so`**；全库 `dlopen` 桩 `0x91A0` 唯一调用点是 `0x41F24`、`dlsym` 桩 `0x9020` 唯一调用点是 `0x41F78`，只解析 `__system_property_read`(表偏移 `0x1440`) 与 `__system_property_find`(`0x57`)。既然从不加载 `libmediandk.so`，就取不到 `AMediaDrm_*` 函数指针，`0x113F`–`0x119F` 那 5 条串（`deviceUniqueId`、`libmediandk.so`、`AMediaDrm_createByUUID`、`AMediaDrm_getPropertyByteArray`、`AMediaDrm_release`）在本包是**不可达的字典遗留项**。字典审计（`tools/qimei_table_audit.py`：398 条记录、279 个取串点、235 条被引用）显示该簇所在的 `0x0F94`–`0x1262` 无直接取串点。详见 `docs/devinfo_layers.md` §4.2。
 5. boot_id（`/proc/sys/kernel/random/boot_id`）每次重启变，属于「会话级」而非「设备级」。
 
 ---

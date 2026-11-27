@@ -16,7 +16,9 @@
 
 2. 真正承担"设备主键"职责的是 QIMEI 的 q16 / q36。它由服务端根据注册 JSON 计算并下发，客户端只做缓存（`A3` / `A153`），本地没有任何生成逻辑可以复现它。
 3. ACE 的 17 槽画像是"硬件画像"：品牌、型号、ABI、CPU、内核、文件系统、inode、传感器、摄像头、电池、音量、USB、ADB、网络、应用列表、SDK 版本。它不直接构造主键，而是作为 q16 的旁证与封号证据。
-4. ACE 还额外组装一个 fake token：`x:<xid>;q:<q16>;Q:<q36>;o:<oaid>`，再包上 `bt:<boot_id>;bd:<brand>`。这一串是 ACE 唯一直接引用 QIMEI 的位置，来源是 TDM 写入的 `Fake_Token_TDM_info`。
+4. ACE 还额外组装一个 fake token：`x:<xid>;q:<q16>;Q:<q36>;o:<oaid>`，再包上 `bt:<boot_id>;bd:<brand>`。这一串是 ACE 唯一直接引用 QIMEI 的位置，容器名是 `Fake_Token_TDM_info`（idx 51374），四个子键为 `xid`(51396)、`QiMaM`(51402)、`QIMEI36`(51410)、`OsEz`(51420)，组装函数 `0x2CCD20`。
+
+   > **校正（12.1.1.1 复核）**：原文"来源是 TDM 写入的"缺少证据。`Fake_Token_TDM_info`、`QiMaM`、`OsEz` 三个名字在 12 个 `.so` 与 6 个 `.dex` 的明文中均为 **0 命中**，只存在于 libtersafe 的加密串表；`libTDataMaster.so` 的设备缓存只有 `tdm_cache.%d.dat`（文件偏移 `0x2E8524`），没有这三个键。实际写入点尚未定位（CFF 平坦化 + 间接调用）。另：槽 17 的取值顺序是 `ft_oaid` → `OsEz` → `fake_token_androidid`，`"Unknown"`(idx 34159) 为 OAID 的无效值哨兵，详见 `docs/devinfo_layers.md` §6.2/§6.3。
 5. 刷机 / 恢复出厂 / 改机所能清除的只有本地缓存（SP + files 目录）；服务端仍然持有 `QIMEI ↔ openid ↔ 历史指纹` 三元组，任何一次"指纹漂移但 q16 不变"或"q16 变化但指纹全同"都会成为风控信号。
 6. q16 的本地落盘形式是 16 字节二进制（base64 编码后写入 `files/com.tencent.qimei.sdk.QimeiSDK`），真机取出的 32 位 hex 是这 16 字节的十六进制展开。
 
