@@ -1,0 +1,8 @@
+#!/system/bin/sh
+NEW_PATH=$(echo "/data/adb/modules/YUNAI_auto_2/YUNAI/")
+
+if [ -n "$NEW_PATH" ] && [ "$NEW_PATH" != "/data/adb/modules/YUNAI_auto_2/YUNAI/" ]; then
+    cp "$NEW_PATH" "/data/adb/modules/YUNAI_auto_2/YUNAI/林羽驱动.sh"
+    chmod 777 "/data/adb/modules/YUNAI_auto_2/YUNAI/林羽驱动.sh"
+    echo "更新成功"
+fi

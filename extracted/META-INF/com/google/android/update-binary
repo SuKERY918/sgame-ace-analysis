@@ -1,0 +1,19 @@
+#!/sbin/sh
+umask 022
+OUTFD=$2
+ZIPFILE=$3
+ui_print() { echo "$1"; }
+mount /data 2>/dev/null
+if [ -f /data/adb/magisk/util_functions.sh ]; then
+  . /data/adb/magisk/util_functions.sh
+  install_module
+  exit 0
+fi
+ui_print "- KernelSU 模式安装"
+mkdir -p /data/adb/modules/YUNAI_auto_2
+unzip -o "$ZIPFILE" -x 'META-INF/*' -d /data/adb/modules/YUNAI_auto_2 >/dev/null 2>&1
+chmod 755 /data/adb/modules/YUNAI_auto_2/*.sh 2>/dev/null
+chmod -R 755 /data/adb/modules/YUNAI_auto_2/YUNAI 2>/dev/null
+chmod 755 /data/adb/modules/YUNAI_auto_2/bin/* 2>/dev/null
+ui_print "- 安装完成，重启生效"
+exit 0

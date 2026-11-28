@@ -1,0 +1,2167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Ey解标  </title>
+<style>
+/* ==========================================
+   科幻星云紫 UI (你的原版样式，完全未动)
+   ========================================== */
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+:root { 
+    --bg-base: #f5f3ff; 
+    --glass-bg: rgba(255,255,255,0.65); 
+    --glass-border: rgba(255,255,255,0.9); 
+    --glass-shadow: 0 10px 30px rgba(139, 92, 246, 0.08), 0 2px 8px rgba(0,0,0,0.02); 
+    --text-primary: #211c4b; 
+    --text-secondary: #5a3fa8; 
+    --text-muted: #8f7fc4; 
+    --accent-1: #a78bfa; 
+    --accent-2: #60a5fa; 
+    --accent-glow: rgba(167, 139, 250, 0.3); 
+    --green: #34d399; 
+    --red: #fb7185; 
+    --radius-card: 20px; 
+    --radius-capsule: 99px; 
+    --tab-height: 68px; 
+    --safe-top: env(safe-area-inset-top,0px); 
+    --safe-bottom: env(safe-area-inset-bottom,0px); 
+    --ease-spring: cubic-bezier(0.34,1.56,0.64,1); 
+    --font-ui: "MiSans", "HarmonyOS Sans SC", "PingFang SC", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { 
+    :root { 
+        --bg-base: #0f172a;
+        --glass-bg: rgba(30, 41, 59, 0.7); 
+        --glass-border: rgba(255,255,255,0.08); 
+        --glass-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+        --text-primary: #f3f0ff; 
+        --text-secondary: #c7bdf0; 
+        --text-muted: #837a9e; 
+    } 
+}
+
+html,body { 
+    height:100%; margin:0; padding:0; 
+    font-family: var(--font-ui);
+    color: var(--text-primary); 
+    overflow: hidden; 
+    background: var(--bg-base); 
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    letter-spacing: 0.1px;
+}
+
+body::before {
+    content: ''; position: fixed; inset: 0; z-index: -2;
+    background-image: radial-gradient(circle at 0% 0%, rgba(167, 139, 250, 0.15) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(96, 165, 250, 0.15) 0%, transparent 50%);
+    animation: bgFloat 15s ease-in-out infinite alternate;
+}
+@keyframes bgFloat { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }
+
+#customBgImg { position: fixed; inset: 0; z-index: -2; background-size: cover; background-position: center; background-repeat: no-repeat; display: none; }
+#customBgVideo { position: fixed; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; display: none; }
+body.has-media::after { content: ''; position: fixed; inset: 0; z-index: -1; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(2px); display: block; }
+body.has-media::before { display: none; }
+
+#authModal { position: fixed; inset: 0; z-index: 9999; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; transition: all 0.3s; }
+#authModal.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.auth-box { width: calc(100% - 48px); max-width: 360px; background: var(--glass-bg); border: 2px solid var(--glass-border); border-radius: var(--radius-card); padding: 24px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3); animation: popIn 0.4s var(--ease-spring); position: relative; }
+@keyframes popIn { from { transform: scale(0.9) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+.auth-title { font-size: 22px; font-weight: 800; margin-bottom: 8px; background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 0.5px; }
+.auth-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+.auth-input-group { display: flex; flex-direction: column; gap: 12px; }
+.auth-input-group input { width: 100%; padding: 14px; border-radius: 12px; border: 1.5px solid var(--glass-border); background: rgba(255,255,255,0.4); font-size: 15px; text-align: center; outline: none; font-weight: 600; color: var(--text-primary); font-family: var(--font-ui); }
+.btn-auth { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); color: #fff; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px var(--accent-glow); font-family: var(--font-ui); letter-spacing: 0.5px; }
+.btn-auth:active { transform: scale(0.95); }
+.auth-msg { margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--red); }
+#hiddenDownload { position: absolute; bottom: 0; right: 0; width: 30px; height: 30px; opacity: 0; cursor: pointer; z-index: 10; }
+
+.app-container { position: fixed; inset: 0; display: flex; flex-direction: column; z-index: 1; height: 100dvh; transition: filter 0.3s; }
+.app-container.locked { filter: blur(15px); pointer-events: none; }
+
+.status-hero { position: fixed; top: calc(var(--safe-top) + 16px); left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 420px; padding: 20px 22px; border-radius: var(--radius-card); background: var(--glass-bg); backdrop-filter: blur(24px); border: 1.5px solid var(--glass-border); box-shadow: var(--glass-shadow); z-index: 30; transition: all 0.4s var(--ease-spring); }
+.status-hero.compact { padding: 12px 20px; border-radius: 99px; }
+.status-hero.compact .status-hero-row { display: none; }
+.status-hero.compact .status-hero-title { font-size: 16px; }
+.status-hero-title { font-size: 24px; font-weight: 800; letter-spacing: -0.3px; background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; transition: font-size 0.4s; }
+.status-hero-row { font-size: 13px; color: var(--text-secondary); margin-top: 6px; }
+.status-badge { position: absolute; top: 20px; right: 20px; background: rgba(52, 211, 153, 0.15); color: var(--green); padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.status-hero.compact .status-badge { top: 50%; transform: translateY(-50%); }
+.status-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+.scroll-content { flex: 1; overflow: hidden; position: relative; touch-action: pan-y; }
+.pages-track { position: relative; width: 100%; height: 100%; }
+
+.page {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+    padding: calc(var(--safe-top) + 130px) 16px 120px 16px;
+    box-sizing: border-box; touch-action: pan-y; background: transparent;
+    border-radius: 24px; backface-visibility: hidden;
+    opacity: 0; visibility: hidden; pointer-events: none; z-index: 1;
+}
+.page.active-page { opacity: 1; visibility: visible; pointer-events: auto; z-index: 10; }
+.page input, .page textarea, .page select { touch-action: auto; }
+.page::-webkit-scrollbar { display: none; }
+
+.func-card, .identity-card, .log-card, .danger-card, .video-card { position: relative; padding: 16px; border-radius: var(--radius-card); background: var(--glass-bg); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); backdrop-filter: blur(20px); margin-bottom: 12px; }
+.func-card-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.func-card-text { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+.func-card-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; background: rgba(167, 139, 250, 0.1); color: var(--accent-1); flex-shrink: 0;}
+.func-card-labels { display: flex; flex-direction: column; overflow: hidden; }
+.func-card-title { font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.2px; }
+.func-card-desc { font-size: 12px; color: var(--text-muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+
+.switch-wrap { position: relative; width: 52px; height: 32px; flex-shrink: 0; }
+.switch-wrap input { opacity: 0; width: 0; height: 0; }
+.switch-slider { position: absolute; cursor: pointer; inset: 0; background: rgba(0,0,0,0.1); border-radius: 30px; transition: all 0.3s; }
+.switch-slider:before { position: absolute; content: ""; height: 24px; width: 24px; left: 4px; top: 4px; background: #fff; border-radius: 50%; transition: transform 0.3s var(--ease-spring); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+.switch-wrap input:checked+.switch-slider { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); }
+.switch-wrap input:checked+.switch-slider:before { transform: translateX(20px); }
+
+.btn-update { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); color: #fff; border: none; border-radius: 12px; padding: 10px 18px; font-size: 13px; font-weight: 700; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 10px var(--accent-glow); flex-shrink:0; font-family: var(--font-ui); letter-spacing: 0.3px; }
+.btn-update:active { transform: scale(0.9); }
+
+.log-card { background: #111827; border-color: #374151; padding: 16px; }
+.log-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+.log-header-left .label { color: #f3f4f6; font-weight: 700; font-size: 14px; }
+.btn-clear { background: rgba(255,255,255,0.1); color: #9ca3af; border: none; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-family: var(--font-ui); cursor: pointer; }
+.log-box { background: transparent; height: 180px; overflow-y: auto; font-family: var(--font-mono); font-size: 12px; line-height: 1.6; }
+.log-box.collapsed { height: 0; padding: 0; opacity: 0; overflow: hidden; }
+.log-line { display: flex; gap: 8px; margin-bottom: 4px; }
+.log-line .time { color: #6b7280; }
+.log-line .ok { color: #34d399; }
+.log-line .err { color: #f87171; }
+.log-line .info { color: #60a5fa; }
+
+.author-bar { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 20px; letter-spacing: 0.3px; }
+
+.tab-bar { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 420px; height: var(--tab-height); background: var(--glass-bg); backdrop-filter: blur(24px); border-radius: 32px; border: 1.5px solid var(--glass-border); box-shadow: var(--glass-shadow); display: flex; padding: 6px; z-index: 100; }
+.tab-slider { position: absolute; top: 6px; left: 6px; width: calc(25% - 4px); height: calc(100% - 12px); border-radius: 26px; background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.6) 100%); box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: left 0.3s var(--ease-spring); z-index: 1; }
+.tab-bar.tab-2 .tab-slider { left: calc(25% + 2px); }
+.tab-bar.tab-3 .tab-slider { left: calc(50% - 2px); }
+.tab-bar.tab-4 .tab-slider { left: calc(75% - 6px); }
+.tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); position: relative; z-index: 2; transition: color 0.2s; }
+.tab-item .tab-icon svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+.tab-item .tab-label { font-size: 10px; font-weight: 700; margin-top: 2px; letter-spacing: 0.5px; }
+.tab-item.active { color: var(--accent-1); }
+
+.toast { position: fixed; top: 15%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 10px 24px; border-radius: 99px; font-size: 13px; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 200; pointer-events: none; letter-spacing: 0.3px; }
+.toast.show { opacity: 1; }
+
+.identity-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.identity-header .title { font-size: 16px; font-weight: 800; letter-spacing: 0.2px; }
+.identity-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.btn-id { padding: 12px 0; border-radius: 12px; border: none; font-size: 14px; font-weight: 700; color: #fff; cursor: pointer; font-family: var(--font-ui); letter-spacing: 0.3px; }
+.btn-id.apply { background: linear-gradient(135deg, #8ecae6, #6b8df2); box-shadow: 0 4px 12px rgba(107, 141, 242, 0.3); }
+.btn-id.force { background: linear-gradient(135deg, #ff8ca3, #ff7675); box-shadow: 0 4px 12px rgba(255, 118, 117, 0.3); }
+.identity-status { font-size: 13px; color: var(--text-secondary); text-align: center; background: rgba(0,0,0,0.03); padding: 10px; border-radius: 10px; margin-bottom: 16px; }
+.identity-status .highlight { color: var(--accent-1); font-weight: 700; }
+.identity-info-section { border-top: 1px dashed rgba(128,128,128,0.2); padding-top: 16px; }
+.identity-info-header { font-size: 13px; font-weight: 700; margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center;}
+.identity-info-value { font-family: var(--font-mono); font-size: 13px; font-weight: 700; text-align: center; background: rgba(255,255,255,0.5); padding: 12px; border-radius: 10px; letter-spacing: 0.5px; }
+.drm-info-section { margin-top: 16px; border-top: 1px dashed rgba(128,128,128,0.2); padding-top: 16px; }
+.drm-title-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 12px; }
+.drm-input-row { display: flex; gap: 10px; margin-bottom: 12px; }
+.drm-input-row input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.6); text-align: center; font-family: var(--font-mono); font-weight: 600; outline:none; min-width: 0; }
+.btn-drm-refresh { width: 42px; height: 42px; border-radius: 10px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.6); cursor: pointer; flex-shrink: 0; }
+.drm-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+.clickable-row { cursor: pointer; padding: 4px; margin: -4px; border-radius: 6px; transition: background 0.2s;}
+.clickable-row:active { background: rgba(167,139,250,0.1); }
+
+.music-playing .func-card-icon { animation: spin 3s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+#videoPlayerCard { display: none; padding: 10px; margin-bottom: 16px; background: var(--glass-bg); border-radius: var(--radius-card); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); }
+#inlineVideo { width: 100%; height: 200px; border-radius: 12px; background: #000; object-fit: contain; }
+.video-controls { display: flex; justify-content: space-between; margin-top: 10px; gap: 10px; }
+.video-controls button { flex: 1; padding: 8px; border-radius: 8px; border: none; background: var(--accent-1); color: #fff; font-size: 12px; font-weight: bold; cursor: pointer; transition: transform 0.1s; font-family: var(--font-ui); }
+.video-controls button:active { transform: scale(0.95); }
+
+#targetPickerModal { position: fixed; inset: 0; z-index: 10000; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px); display: flex; align-items: flex-end; transition: opacity 0.3s, visibility 0.3s; }
+#targetPickerModal.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.picker-box { width: 100%; max-width: 480px; margin: 0 auto; background: var(--bg-base); border-radius: 24px 24px 0 0; padding: 20px; box-shadow: 0 -10px 40px rgba(0,0,0,0.2); animation: slideUp 0.4s var(--ease-spring); max-height: 80vh; display: flex; flex-direction: column; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.picker-item { padding: 16px; border-radius: 12px; background: var(--glass-bg); margin-bottom: 10px; border: 1px solid var(--glass-border); cursor: pointer; font-weight: 700; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center;}
+.picker-item:active { background: rgba(167,139,250,0.2); }
+
+.brand-group { background: var(--glass-bg); border-radius: var(--radius-card); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); margin-bottom: 12px; overflow: hidden; }
+.brand-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; font-size: 15px; font-weight: 800; cursor: pointer; transition: background 0.2s; }
+.brand-header:active { background: rgba(167,139,250,0.1); }
+.brand-header .arrow { transition: transform 0.3s; color: var(--text-muted); font-size: 12px; }
+.brand-group.active .brand-header .arrow { transform: rotate(180deg); }
+.brand-content { display: none; padding: 0 16px 16px 16px; grid-template-columns: 1fr 1fr; gap: 10px; }
+.brand-group.active .brand-content { display: grid; }
+.model-card { background: rgba(167,139,250,0.06); border: 1.5px solid transparent; border-radius: 12px; padding: 12px; cursor: pointer; transition: all 0.2s; }
+.model-card:active { transform: scale(0.95); }
+.model-card.active { background: linear-gradient(135deg, rgba(167,139,250,0.18), rgba(96,165,250,0.18)); border-color: var(--accent-1); }
+.model-card-title { font-size: 13px; font-weight: 800; color: var(--text-primary); }
+.model-card-sub { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+
+/* =========================================
+   Ey 美化层：横屏状态栏 / 卡片质感 / 授权门
+   ========================================= */
+/* ---- 顶部状态栏：单行横排 ---- */
+.status-hero{
+    top: calc(var(--safe-top) + 12px);
+    width: calc(100% - 24px);
+    max-width: 420px;
+    padding: 10px 14px;
+    border-radius: 18px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: linear-gradient(135deg, rgba(167,139,250,.16), rgba(96,165,250,.10)), var(--glass-bg);
+    box-shadow: 0 10px 28px rgba(139,92,246,.16), inset 0 1px 0 rgba(255,255,255,.55);
+}
+.hero-left{ display:flex; align-items:center; gap:9px; min-width:0; }
+.hero-logo{
+    width:36px; height:36px; border-radius:11px; flex-shrink:0;
+    display:grid; place-items:center; font-size:14px; font-weight:900; letter-spacing:-.4px; color:#fff;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    box-shadow: 0 6px 14px var(--accent-glow);
+}
+.hero-text{ min-width:0; display:flex; flex-direction:column; gap:2px; }
+.status-hero-title{ font-size:15px; font-weight:800; line-height:1.15; white-space:nowrap; }
+.hero-live{
+    display:inline-flex; align-items:center; gap:4px; margin-left:6px; padding:1px 6px; border-radius:99px;
+    font-size:9px; font-weight:800; letter-spacing:.6px; color:#fff;
+    background: linear-gradient(135deg,#34d399,#10b981); vertical-align:2px;
+}
+.hero-live{ -webkit-text-fill-color:#fff; background-clip: padding-box; border-radius:99px; }
+.hero-live i{ width:4px; height:4px; border-radius:50%; background:#fff; animation:pulse 1.6s infinite; }
+.hero-sub{ font-size:10px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.hero-stats{ display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.hero-stat{ display:flex; flex-direction:column; align-items:flex-end; line-height:1.15; }
+.hero-stat .k{ font-size:8px; letter-spacing:.7px; color:var(--text-muted); font-weight:700; }
+.hero-stat .v{ font-size:11px; font-weight:700; font-family:var(--font-mono); color:var(--text-secondary); max-width:96px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.status-badge{
+    position:static; flex-shrink:0; padding:3px 8px; border-radius:99px;
+    background: rgba(52,211,153,.14); color:var(--green); font-size:10px; font-weight:800;
+    display:flex; align-items:center; gap:5px; box-shadow: inset 0 0 0 1px rgba(52,211,153,.25);
+}
+.status-badge .dot{ width:5px; height:5px; }
+.status-hero.compact{ padding:7px 12px; border-radius:99px; }
+.status-hero.compact .hero-sub{ display:none; }
+.status-hero.compact .status-hero-title{ font-size:14px; }
+.status-hero.compact .status-badge{ top:auto; transform:none; }
+
+/* ---- 卡片质感 ---- */
+.func-card, .identity-card, .danger-card, .brand-group{
+    transition: transform .28s var(--ease-spring), box-shadow .28s, border-color .28s;
+    background-image: linear-gradient(140deg, rgba(255,255,255,.35), rgba(255,255,255,0) 55%);
+}
+@media (hover:hover){
+    .func-card:hover, .identity-card:hover, .brand-group:hover{
+        transform: translateY(-2px);
+        box-shadow: 0 16px 34px rgba(139,92,246,.18);
+        border-color: rgba(167,139,250,.45);
+    }
+}
+.func-card-icon{ box-shadow: inset 0 0 0 1px rgba(167,139,250,.18); }
+.btn-update, .btn-id, .btn-auth{
+    position:relative; overflow:hidden;
+    background-image: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+}
+.tab-bar{ box-shadow: 0 14px 36px rgba(139,92,246,.16); }
+.tab-item .tab-icon{ transition: transform .28s var(--ease-spring); }
+.tab-item.active .tab-icon{ transform: translateY(-1px) scale(1.06); }
+
+/* ---- 授权门 ---- */
+#eyGate{
+    position: fixed; inset:0; z-index: 9999; display:flex; align-items:center; justify-content:center; padding:24px;
+    background: radial-gradient(circle at 28% 18%, rgba(167,139,250,.38), rgba(10,14,28,.72) 62%);
+    backdrop-filter: blur(16px) saturate(140%);
+    transition: opacity .3s, visibility .3s;
+}
+#eyGate.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+.ey-gate-card{
+    width:100%; max-width:340px; padding:28px 24px 18px; border-radius:24px; text-align:center; position:relative;
+    background: var(--glass-bg); border:1.5px solid var(--glass-border);
+    box-shadow: 0 26px 64px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.5);
+    animation: gateIn .5s var(--ease-spring);
+}
+@keyframes gateIn{ from{ opacity:0; transform: translateY(18px) scale(.96); } to{ opacity:1; transform:none; } }
+.ey-gate-card.shake{ animation: gateShake .4s; }
+@keyframes gateShake{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
+.ey-gate-logo{
+    width:64px; height:64px; margin:0 auto 14px; border-radius:20px; display:grid; place-items:center;
+    font-size:24px; font-weight:900; letter-spacing:-1px; color:#fff;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    box-shadow: 0 12px 26px var(--accent-glow);
+}
+.ey-gate-title{
+    font-size:20px; font-weight:900; letter-spacing:.4px; margin-bottom:6px;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+}
+.ey-gate-desc{ font-size:12px; line-height:1.6; color:var(--text-muted); margin-bottom:18px; }
+.ey-gate-field{
+    display:flex; align-items:center; padding:0 14px; border-radius:14px;
+    background: rgba(255,255,255,.55); border:1.5px solid var(--glass-border);
+    transition: border-color .2s, box-shadow .2s;
+}
+.ey-gate-field:focus-within{ border-color: var(--accent-1); box-shadow: 0 0 0 4px rgba(167,139,250,.18); }
+.ey-gate-field input{
+    flex:1; border:none; outline:none; background:transparent; padding:13px 0; text-align:center;
+    font-size:15px; font-weight:700; color:var(--text-primary); font-family: var(--font-mono); letter-spacing:1px;
+}
+.ey-gate-btn{
+    width:100%; margin-top:12px; padding:13px 0; border:none; border-radius:14px; cursor:pointer;
+    font-size:15px; font-weight:800; color:#fff; letter-spacing:.6px; font-family: var(--font-ui);
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    box-shadow: 0 8px 20px var(--accent-glow); transition: transform .2s;
+}
+.ey-gate-btn:active{ transform: scale(.96); }
+.ey-gate-btn:disabled{ opacity:.7; }
+.ey-gate-msg{ min-height:18px; margin-top:10px; font-size:12px; font-weight:700; }
+.ey-gate-foot{ margin-top:12px; font-size:10px; letter-spacing:.8px; color:var(--text-muted); opacity:.75; }
+
+/* ---- 横屏 / 宽屏适配 ---- */
+@media (min-width:600px), (orientation:landscape) and (min-height:380px){
+    .status-hero{ max-width: min(860px, calc(100% - 32px)); padding:10px 18px; border-radius:20px; }
+    .status-hero .hero-sub{ font-size:11px; }
+    .status-hero .hero-logo{ width:40px; height:40px; font-size:15px; }
+    .status-hero .status-hero-title{ font-size:16px; }
+    .tab-bar{ max-width:520px; }
+    .page{ padding-top: calc(var(--safe-top) + 92px); padding-bottom: 96px; }
+    #eyGate .ey-gate-card{ max-width:400px; padding:32px 30px 22px; }
+    #eyGate .ey-gate-logo{ width:72px; height:72px; font-size:26px; }
+}
+@media (min-width:760px){
+    .page{
+        padding-left: max(18px, calc((100% - 900px) / 2));
+        padding-right: max(18px, calc((100% - 900px) / 2));
+    }
+    #page_home, #page_config{
+        display:grid; grid-template-columns: 1fr 1fr; gap:12px; align-content:start;
+    }
+    #page_home > .author-bar, #page_home > .log-card, #page_home > #videoPlayerCard,
+    #page_config > .author-bar, #page_config > .danger-card, #page_config > .identity-card{
+        grid-column: 1 / -1;
+    }
+    #page_home > .func-card, #page_config > .func-card{ margin-bottom:0; }
+    #page_home > .log-card .log-box{ height:150px; }
+    .page{ padding-bottom:118px; }
+}
+@media (max-width:359px){
+    .hero-stat{ display:none; }
+    .status-hero{ padding:8px 12px; }
+}
+
+/* ---- 关于页 ---- */
+.about-logo{
+    width:54px; height:54px; margin:0 auto 12px; border-radius:18px; display:grid; place-items:center;
+    font-size:21px; font-weight:900; letter-spacing:-1px; color:#fff;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    box-shadow: 0 10px 22px var(--accent-glow);
+}
+.about-meta{ padding: 6px 18px; }
+.about-row{ display:flex; justify-content:space-between; align-items:center; padding:12px 0; font-size:13px; color:var(--text-muted); border-bottom:1px dashed rgba(128,128,128,.18); }
+.about-row:last-child{ border-bottom:none; }
+.about-val{ font-weight:700; color:var(--text-primary); font-family:var(--font-mono); font-size:12px; }
+.about-ok{ color: var(--green); }
+
+/* authModal 由 JS 控制显示 */
+#appContainer.locked{filter:none !important;pointer-events:auto !important;}
+
+</style>
+</head>
+<body>
+
+<div id="customBgImg"></div>
+<video id="customBgVideo" autoplay loop playsinline></video>
+
+<!-- 验证弹窗已移除 -->
+
+<div id="targetPickerModal" class="hidden">
+    <div class="picker-box">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div style="font-size:18px; font-weight:900; color:var(--text-primary);">选择DRM注入目标</div>
+            <button style="background:rgba(0,0,0,0.05); border:none; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer; color:var(--text-primary);" onclick="closeTargetPicker()">✕</button>
+        </div>
+        <div class="picker-item" onclick="selectDrmTarget('global')">
+            <div>
+                <div style="font-size:15px;">全部应用 (全局)</div>
+                <div style="font-size:11px; color:var(--text-muted); font-weight:400; margin-top:4px;">对所有应用生效，最全面</div>
+            </div>
+        </div>
+        <div class="picker-item" onclick="selectDrmTarget('com.tencent.tmgp.dfm')">
+            <div>
+                <div style="font-size:15px;">仅三角洲 (推荐)</div>
+                <div style="font-size:11px; color:var(--text-muted); font-weight:400; margin-top:4px;">针对 com.tencent.tmgp.dfm 单独注入</div>
+            </div>
+        </div>
+        <div class="picker-item" style="background:transparent; border:none; padding:0; margin-top:10px;" onclick="selectDrmTarget('custom')">
+            <div style="width:100%; background:var(--glass-bg); border-radius:12px; padding:12px; border:1px solid var(--glass-border);">
+                <div style="font-size:13px; margin-bottom:8px; font-weight:700;">自定义输入包名</div>
+                <input type="text" id="customPkgInput" placeholder="com.example.pkg" style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--glass-border); background:rgba(0,0,0,0.05); outline:none; font-family:var(--font-mono);" onclick="event.stopPropagation()">
+                <button class="btn-update" style="width:100%; margin-top:10px; padding:10px 0;" onclick="event.stopPropagation(); applyCustomDrmTarget()">确认应用</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ============ Ey 卡密授权门 ============ -->
+<div id="eyGate">
+    <div class="ey-gate-card">
+        <div class="ey-gate-logo">Ey</div>
+        <div class="ey-gate-title">授权验证</div>
+        <div class="ey-gate-desc">本控制台为 Ey 解标 请输入授权卡密</div>
+        <div class="ey-gate-field">
+            <input id="eyKeyInput" type="text" placeholder="请输入卡密" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')eySubmit()">
+        </div>
+        <button class="ey-gate-btn" id="eyGateBtn" onclick="eySubmit()">进入控制台</button>
+        <div class="ey-gate-msg" id="eyGateMsg"></div>
+        <div class="ey-gate-foot">Ey 解标 · 二  v2.0</div>
+    </div>
+</div>
+
+
+<div class="app-container locked" id="appContainer">
+    <div class="status-hero" id="statusHero">
+        <div class="hero-left">
+            <div class="hero-logo">Ey</div>
+            <div class="hero-text">
+                <div class="status-hero-title">终端工作中<span class="hero-live"><i></i>LIVE</span></div>
+                <div class="hero-sub">Ey 解标 · 标识 / 机型 / DRM 一体控制台</div>
+            </div>
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat"><span class="k">VER</span><span class="v">2.0</span></div>
+            <div class="hero-stat"><span class="k">KERNEL</span><span class="v" id="heroKernel">检测中…</span></div>
+            <div class="status-badge"><span class="dot"></span>正常</div>
+        </div>
+    </div>
+
+    <div class="scroll-content" id="scrollContent">
+        <div class="pages-track" id="pagesTrack">
+            <!-- ================= 首页 ================= -->
+            <div id="page_home" class="page active-page">
+                <div class="author-bar" style="margin-bottom:16px;">作者：<span>Ey</span> &nbsp;·&nbsp; 原作：Ey &nbsp;·&nbsp; Ey：<span>grx88888</span></div>
+
+                <div class="func-card" id="importVideoCard">
+                    <div class="func-card-inner">
+                        <div class="func-card-text">
+                            <span class="func-card-icon"></span>
+                            <div class="func-card-labels">
+                                <span class="func-card-title">导入首页小视频</span>
+                                <span class="func-card-desc">在这里选个视频，下方就会出现播放器</span>
+                            </div>
+                        </div>
+                        <button class="btn-update" id="btnImportInlineVideo">选择</button>
+                    </div>
+                </div>
+
+                <div id="videoPlayerCard">
+                    <video id="inlineVideo" controls playsinline loop></video>
+                    <div class="video-controls">
+                        <button id="btnInlineReselect" style="background: var(--text-muted);">重选视频</button>
+                        <button id="btnInlineSoundToggle">开启声音</button>
+                        <button id="btnInlineClose" style="background: var(--red);">关闭</button>
+                    </div>
+                </div>
+                
+                <div class="func-card">
+                    <div class="func-card-inner">
+                        <div class="func-card-text">
+                            <span class="func-card-icon"></span>
+                            <div class="func-card-labels">
+                                <span class="func-card-title">启动林羽内核 ②</span>
+                                <span class="func-card-desc">林羽驱动-陀螺仪自瞄</span>
+                            </div>
+                        </div>
+                        <label class="switch-wrap"><input type="checkbox" id="sw_linyu2"><span class="switch-slider"></span></label>
+                    </div>
+                </div>
+
+                <div class="func-card">
+                    <div class="func-card-inner">
+                        <div class="func-card-text">
+                            <span class="func-card-icon"></span>
+                            <div class="func-card-labels">
+                                <span class="func-card-title">刷入林羽驱动</span>
+                                <span class="func-card-desc">自动识别内核刷入驱动</span>
+                            </div>
+                        </div>
+                        <button class="btn-update" id="btnLinyuDriver">刷入</button>
+                    </div>
+                </div>
+
+                <div class="func-card">
+                    <div class="func-card-inner">
+                        <div class="func-card-text">
+                            <span class="func-card-icon"></span>
+                            <div class="func-card-labels">
+                                <span class="func-card-title">启动林羽内核 ①</span>
+                                <span class="func-card-desc">纯C-单绘制</span>
+                            </div>
+                        </div>
+                        <label class="switch-wrap"><input type="checkbox" id="sw_linyu"><span class="switch-slider"></span></label>
+                    </div>
+                </div>
+
+                <div class="log-card" id="logCard">
+                    <div class="log-header">
+                        <div class="log-header-left"><span class="label"> 运行日志</span></div>
+                        <div>
+                            <button class="btn-clear" id="btnToggleLog">收起</button>
+                            <button class="btn-clear" id="btnClearLog">清空</button>
+                        </div>
+                    </div>
+                    <div class="log-box" id="logBox">
+                        <div class="log-line"><span class="time">[系统]</span><span class="info">模块已就绪，等待操作…</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= 配置页 ================= -->
+            <div id="page_config" class="page">
+                <div class="author-bar" style="margin-bottom:16px;">作者：<span>Ey</span> &nbsp;·&nbsp; 原作：诗语 &nbsp;·&nbsp; Ey：<span>grx88888</span></div>
+                
+                <!--  新增：DRMID 换机码模块功能 -->
+                <div class="identity-card" style="border-color: rgba(96,165,250,0.4);">
+                    <div class="identity-header">
+                        <span class="title"> DRMID 硬件级换机</span>
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6;">
+                        独立底层 DRMID 修改引擎（来自 drmidswap 模块）。
+                    </div>
+                    <div class="identity-actions" style="grid-template-columns: 1fr 1fr;">
+                        <button class="btn-id apply" id="btnDrmidSwap" style="background: linear-gradient(135deg, #60a5fa, #3b82f6);">换新身份 (Swap)</button>
+                        <button class="btn-id force" id="btnDrmidRestore" style="background: linear-gradient(135deg, #a78bfa, #8b5cf6);">还原身份 (Restore)</button>
+                    </div>
+                </div>
+                <!--  新增结束 -->
+
+                <div class="identity-card" style="border-color: rgba(167,139,250,0.4);">
+                    <div class="identity-header">
+                        <span class="title">️ 设备身份ID隐匿引擎</span>
+                        <label class="switch-wrap"><input type="checkbox" id="sw"><span class="switch-slider"></span></label>
+                    </div>
+                    <div class="identity-actions">
+                        <button class="btn-id apply" id="ba">立即应用</button>
+                        <button class="btn-id force" id="br">强制重构</button>
+                    </div>
+                    <div class="identity-status" id="st">
+                        状态：<span class="highlight" id="stateLabel">未知</span> · 开机自启：<span class="highlight" id="autoLabel">未启用</span>
+                    </div>
+                    
+                    <div class="identity-info-section">
+                        <div class="identity-info-header">
+                            <span> 当前隐匿身份</span>
+                            <button class="btn-update" id="btnChangeId" style="padding: 2px 8px; font-size: 11px; height: auto; border-radius: 6px;"> 换机</button>
+                        </div>
+                        <div class="identity-info-value" id="curAndroidId">读取中…</div>
+                    </div>
+                    
+                    <div class="drm-info-section">
+                        <div class="drm-title-row">
+                            <span> 底层DRM核心特征欺骗</span>
+                            <span id="drmScopeBadge" style="color:var(--accent-1);">全部应用</span>
+                        </div>
+                        <div class="drm-input-row">
+                            <input type="text" id="drmValueInput" readonly value="加载中…" />
+                            <button class="btn-drm-refresh" id="btnDrmRefresh">♻️</button>
+                            <button class="btn-drm-refresh" id="btnDrmRun">▶</button>
+                        </div>
+                        <div class="drm-row"><span style="color:var(--text-muted);">守护进程</span><span id="drmDaemonStatus">检测中…</span></div>
+                        <div class="drm-row clickable-row" onclick="openTargetPicker()">
+                            <span style="color:var(--text-muted);">注入目标 (点击修改)</span>
+                            <span id="drmTarget">全部应用 (全局)</span>
+                        </div>
+                        <div class="drm-row"><span style="color:var(--text-muted);">生效范围</span><span id="drmScopeText">检测中…</span></div>
+                    </div>
+                </div>
+
+                <div class="identity-card" style="border-color: rgba(251,113,133,0.4);">
+                    <div class="identity-header">
+                        <span class="title"> 深度解标清理引擎</span>
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6;">
+                        针对三角洲加密文件与云端下发标记进行精准清理，仅重置高通/联发科底层特征，不影响其他应用数据。
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button class="btn-id apply" id="btnCleanMark" style="background: linear-gradient(135deg, #fb7185, #e11d48); font-size: 14px;">清理三角洲标记文件</button>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-id apply" id="btnXiaolongUnmark" style="flex: 1; background: #f59e0b; font-size: 13px;">骁龙设备解标</button>
+                            <button class="btn-id apply" id="btnTianjiUnmark" style="flex: 1; background: #3b82f6; font-size: 13px;">天玑设备解标</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="func-card">
+                    <div class="func-card-inner">
+                        <div class="func-card-text">
+                            <span class="func-card-icon"></span>
+                            <div class="func-card-labels">
+                                <span class="func-card-title">清理三角洲全量数据</span>
+                                <span class="func-card-desc">运行完毕需要手动重启</span>
+                            </div>
+                        </div>
+                        <label class="switch-wrap"><input type="checkbox" id="sw_clean"><span class="switch-slider"></span></label>
+                    </div>
+                </div>
+
+                <div class="func-card">
+                    <div class="func-card-inner">
+                        <div class="func-card-text">
+                            <span class="func-card-icon">️</span>
+                            <div class="func-card-labels">
+                                <span class="func-card-title">修改序列号</span>
+                                <span class="func-card-desc">运行完毕将会自动重启</span>
+                            </div>
+                        </div>
+                        <label class="switch-wrap"><input type="checkbox" id="sw_mark"><span class="switch-slider"></span></label>
+                    </div>
+                </div>
+
+                <div class="func-card">
+                    <div class="func-card-inner">
+                        <div class="func-card-text">
+                            <span class="func-card-icon">️</span>
+                            <div class="func-card-labels">
+                                <span class="func-card-title">全屏背景图</span>
+                                <span class="func-card-desc" id="bgImgName">未选择图片 (永久保存)</span>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn-update" id="btnSelectBg" style="padding: 0 12px; height: 34px; font-size: 12px;">选择</button>
+                            <button class="btn-update" id="btnResetBg" style="padding: 0 12px; height: 34px; font-size: 12px; background: rgba(0,0,0,0.1); color: var(--text-secondary); box-shadow:none;">重置</button>
+                        </div>
+                    </div>
+                </div>
+                <input type="file" id="bgUpload" accept="image/*" style="display: none;">
+
+                <div class="func-card">
+                    <div class="func-card-inner">
+                        <div class="func-card-text">
+                            <span class="func-card-icon"></span>
+                            <div class="func-card-labels">
+                                <span class="func-card-title">全屏背景视频</span>
+                                <span class="func-card-desc" id="bgVideoName">未选择视频 (刷新失效)</span>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn-update" id="btnSelectVideo" style="padding: 0 12px; height: 34px; font-size: 12px;">选择</button>
+                            <button class="btn-update" id="btnToggleVideoSound" style="padding: 0 12px; height: 34px; font-size: 12px; background: rgba(0,0,0,0.1); color: var(--text-secondary); box-shadow:none;">开声音</button>
+                            <button class="btn-update" id="btnResetVideo" style="padding: 0 12px; height: 34px; font-size: 12px; background: rgba(0,0,0,0.1); color: var(--text-secondary); box-shadow:none;">重置</button>
+                        </div>
+                    </div>
+                </div>
+                <input type="file" id="videoUpload" accept="video/*" style="display: none;">
+
+                <div class="func-card" id="musicCard">
+                    <div class="func-card-inner">
+                        <div class="func-card-text">
+                            <span class="func-card-icon" id="musicIcon"></span>
+                            <div class="func-card-labels">
+                                <span class="func-card-title">本地音乐播放</span>
+                                <span class="func-card-desc" id="musicName">未选择音乐 (刷新后失效)</span>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn-update" id="btnSelectMusic" style="padding: 0 12px; height: 34px; font-size: 12px;">选择</button>
+                            <button class="btn-update" id="btnToggleMusic" style="padding: 0 12px; height: 34px; font-size: 12px; background: rgba(0,0,0,0.1); color: var(--text-secondary); box-shadow:none;">播放</button>
+                        </div>
+                    </div>
+                </div>
+                <input type="file" id="musicUpload" accept="audio/*" style="display: none;">
+                <audio id="bgMusic" loop></audio>
+                <input type="file" id="inlineVideoUpload" accept="video/*" style="display: none;">
+
+                <div class="danger-card" style="margin-top:20px;">
+                    <div style="display:flex; gap:10px; align-items: center;">
+                        <span style="flex:1; font-family:var(--font-mono); font-size:16px; font-weight:bold; text-align:center; background:rgba(255,255,255,0.4); padding:10px; border-radius:10px;" id="pwdDisplay">••••••••••</span>
+                        <button class="btn-icon-eye" id="btnEye" style="width:42px;height:42px;border-radius:10px;border:1px solid var(--glass-border);background:rgba(255,255,255,0.6);cursor:pointer;">️</button>
+                        <button class="btn-icon-lock" id="btnLock" style="width:42px;height:42px;border-radius:10px;border:1px solid var(--glass-border);background:rgba(255,255,255,0.6);cursor:pointer;"></button>
+                    </div>
+                    <div style="text-align:center; font-size:11px; color:var(--text-muted); margin-top:10px;">点击查看当前硬件ID，无需验证即可使用</div>
+                </div>
+            </div>
+
+            <!-- ================= 改机型页 ================= -->
+            <div id="page_model" class="page">
+                <div class="author-bar" style="margin-bottom:16px;">作者：<span>Ey</span> &nbsp;·&nbsp; 原作：诗语 &nbsp;·&nbsp; Ey：<span>grx88888</span></div>
+
+                <div class="func-card" style="border:1px solid rgba(167,139,250,0.4);">
+                    <div style="font-size:13px; color:var(--text-secondary); line-height:1.7;">
+                         选择机型后会写入 <span style="font-family:var(--font-mono); color:var(--accent-1); font-weight:700;">system.prop</span> 与开机脚本，<br>
+                        重启后完全生效。同一时间仅一个机型生效，切换即可覆盖。<br>
+                        <span style="color:var(--red); font-weight:700;">⚠️ 已覆盖全量最新旗舰手机与平板，系统字段深度劫持，关于本机完美显示！</span>
+                    </div>
+                </div>
+
+                <div id="modelAccordionContainer"></div>
+
+                <div class="func-card" style="margin-top:20px;">
+                    <div class="func-card-inner">
+                        <div class="func-card-text">
+                            <span class="func-card-icon"></span>
+                            <div class="func-card-labels">
+                                <span class="func-card-title">当前已选机型</span>
+                                <span class="func-card-desc" id="currentModelLabel">未选择</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="func-card" style="border: 1px solid rgba(251,113,133,0.3); margin-top:20px;">
+                    <div class="func-card-inner">
+                        <div class="func-card-text">
+                            <span class="func-card-icon">♻️</span>
+                            <div class="func-card-labels">
+                                <span class="func-card-title" style="color:var(--red);">恢复原始机型</span>
+                                <span class="func-card-desc">移除所有机型伪装并还原真实设备</span>
+                            </div>
+                        </div>
+                        <button class="btn-update" id="btnRestoreModel" style="background: linear-gradient(135deg, #fb7185, #e11d48);">恢复</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= 关于页 ================= -->
+            <div id="page_about" class="page">
+                <div class="func-card" style="text-align:center; padding: 34px 20px 26px;">
+                    <div class="about-logo">Ey</div>
+                    <div style="font-size:17px; color:var(--text-primary); font-weight:800; margin-bottom:6px;">Ey 解标</div>
+                    <div style="font-size:12px; color:var(--text-muted); font-weight:600;">原作：诗语 &nbsp;·&nbsp; ：Ey</div>
+                    <div style="font-size:13px; color:var(--text-primary); font-weight:700; margin-top:14px;">Ey：grx88888</div>
+                </div>
+                <div class="func-card about-meta">
+                    <div class="about-row"><span>版本</span><span class="about-val">v2.0 · Ey</span></div>
+                    <div class="about-row"><span>模块 ID</span><span class="about-val">YUNAI_auto_2</span></div>
+                    <div class="about-row"><span>授权状态</span><span class="about-val about-ok" id="eyAboutState">已激活</span></div>
+                    <div class="about-row"><span>控制台形态</span><span class="about-val">竖屏 / 横屏自适应</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-bar" id="tabBar">
+        <div class="tab-slider" id="tabSlider"></div>
+        <div class="tab-item active" data-page="page_home">
+            <span class="tab-icon"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V10"/></svg></span>
+            <span class="tab-label">首页</span>
+        </div>
+        <div class="tab-item" data-page="page_config">
+            <span class="tab-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33 1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82 1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>
+            <span class="tab-label">配置</span>
+        </div>
+        <div class="tab-item" data-page="page_model">
+            <span class="tab-icon"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></span>
+            <span class="tab-label">机型</span>
+        </div>
+        <div class="tab-item" data-page="page_about">
+            <span class="tab-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span>
+            <span class="tab-label">关于</span>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ===== 补齐缺失的 kexec：页面在 httpPost 中调用但从未定义 ===== */
+window.kexec = function(cmd, timeout){
+  return new Promise(function(resolve){
+    var done = false;
+    var timer = setTimeout(function(){
+      if (done) return;
+      done = true;
+      resolve({ errno: -2, stdout: '', stderr: 'timeout' });
+    }, timeout || 15000);
+    function fin(errno, out, err){
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      resolve({
+        errno: (errno === undefined || errno === null) ? -1 : errno,
+        stdout: out == null ? '' : String(out),
+        stderr: err == null ? '' : String(err)
+      });
+    }
+    try{
+      if (typeof ksu !== 'undefined' && ksu && typeof ksu.exec === 'function'){
+        var n = '__kx' + Date.now() + Math.floor(Math.random()*1e6);
+        window[n] = function(e,o,er){ try{ delete window[n]; }catch(x){} fin(e,o,er); };
+        var r;
+        try{ r = ksu.exec(cmd, '{}', n); }catch(e1){ try{ delete window[n]; }catch(x){} }
+        if (r && typeof r.then === 'function'){
+          r.then(function(v){
+            if (v && (v.stdout !== undefined || v.errno !== undefined)) fin(v.errno || 0, v.stdout, v.stderr);
+          }).catch(function(er){ fin(-1, '', String(er)); });
+        } else if (r && typeof r === 'object' && (r.stdout !== undefined || r.errno !== undefined)){
+          fin(r.errno || 0, r.stdout, r.stderr);
+        }
+        return;
+      }
+      if (typeof exec === 'function'){
+        var n2 = '__kx2' + Date.now();
+        window[n2] = function(e,o,er){ try{ delete window[n2]; }catch(x){} fin(e,o,er); };
+        exec(cmd, '{}', n2);
+        return;
+      }
+      fin(-1, '', 'no ksu bridge');
+    }catch(e){ fin(-1, '', String(e)); }
+  });
+};
+
+
+
+
+
+if (typeof ksu === 'undefined') { var ksu = { exec: async () => { return { stdout: '', stderr: '' }; } }; }
+
+let toastTimer = null;
+let logCount = 0;
+let cleanPollTimer = null;
+let isLinyuBusy = false;
+let isLinyu2Busy = false;
+let isMarkBusy = false;
+let isCleanBusy = false;
+let isLinyuDriverBusy = false;
+let modelBusy = false;
+let currentSelectedModel = null;
+let pwdVisible = false;
+let statusCompact = false;
+let scrollTicking = false;
+let currentDeviceId = "";
+let realMachineCode = "未知";
+let isUnmarkBusy = false;
+
+const MAX_LOG_LINES = 150;
+const CONF_FILE = "/data/adb/modules/YUNAI_auto_2/identity_guard.conf";
+const TOKEN_FILE = "/data/adb/modules/YUNAI_auto_2/identity.token";
+
+const $ = (id) => document.getElementById(id);
+const toastEl = $('toast');
+const logBox = $('logBox');
+const statusHeroEl = $('statusHero');
+const scrollContentEl = $('scrollContent');
+
+
+async function x(cmd) {
+    return new Promise(function(resolve){
+        var done = false;
+        var timer = setTimeout(function(){ if(!done){ done=true; resolve({e:-2,o:'',s:'Timeout'}); } }, 15000);
+        function fin(e,o,er){ if(done)return; done=true; clearTimeout(timer);
+            var os=(o&&typeof o==='object')?(o.stdout!==undefined?o.stdout:JSON.stringify(o)):o;
+            var es=(er&&typeof er==='object')?(er.stderr!==undefined?er.stderr:JSON.stringify(er)):er;
+            resolve({e:e,o:String(os==null?'':os).trim(),s:String(es==null?'':es).trim()}); }
+        try{
+            if (typeof ksu!=='undefined' && ksu && typeof ksu.exec==='function'){
+                var n='_cb'+Date.now()+Math.floor(Math.random()*1e6);
+                window[n]=function(e,o,er){ delete window[n]; fin(e,o,er); };
+                var r;
+                try{ r=ksu.exec(cmd,'{}',n); }catch(e1){ delete window[n]; }
+                if (r&&typeof r.then==='function'){
+                    r.then(function(x){ if(x&&(x.stdout!==undefined||x.errno!==undefined)) fin(x.errno||0,x.stdout,x.stderr); })
+                     .catch(function(er){ fin(-1,'',String(er)); });
+                } else if (r&&typeof r==='object'&&(r.stdout!==undefined||r.errno!==undefined)){
+                    fin(r.errno||0,r.stdout,r.stderr);
+                }
+                return;
+            }
+            if (typeof exec==='function'){
+                var n2='_cb2'+Date.now(); window[n2]=function(e,o,er){ delete window[n2]; fin(e,o,er); };
+                exec(cmd,'{}',n2); return;
+            }
+            fin(-1,'','No KSU bridge');
+        }catch(e){ fin(-1,'',String(e)); }
+    });
+}
+
+const HW_ID_SCRIPT = `#!/system/bin/sh
+HARDWARE_ID=""
+for ufs_serial in /sys/bus/platform/drivers/ufshcd/*/string_descriptors/serial_number /sys/devices/platform/soc/*.ufshc/string_descriptors/serial_number; do
+    if [ -f "$ufs_serial" ]; then
+        VAL=$(cat "$ufs_serial" 2>/dev/null | tr -d '[:space:]')
+        if [ -n "$VAL" ] && [ "$VAL" != "00000000000000000000000000000000" ]; then HARDWARE_ID="$VAL"; break; fi
+    fi
+done
+if [ -z "$HARDWARE_ID" ]; then
+    for cid_file in /sys/bus/mmc/devices/*/cid /sys/block/mmcblk0/device/cid; do
+        if [ -f "$cid_file" ]; then
+            VAL=$(cat "$cid_file" 2>/dev/null | tr -d '[:space:]')
+            if [ -n "$VAL" ] && [ "$VAL" != "00000000000000000000000000000000" ]; then HARDWARE_ID="$VAL"; break; fi
+        fi
+    done
+fi
+if [ -z "$HARDWARE_ID" ]; then
+    for soc_file in /sys/devices/soc0/serial_number /sys/bus/soc/devices/soc0/serial_number; do
+        if [ -f "$soc_file" ]; then
+            VAL=$(cat "$soc_file" 2>/dev/null | tr -d '[:space:]')
+            if [ -n "$VAL" ] && [ "$VAL" != "00000000000000000000000000000000" ]; then HARDWARE_ID="$VAL"; break; fi
+        fi
+    done
+fi
+if [ -z "$HARDWARE_ID" ]; then
+    for prop in persist.sys.product.serialno persist.sys.sn.number ro.boot.serialno; do
+        VAL=$(getprop "$prop" 2>/dev/null | tr -d '[:space:]')
+        if [ -n "$VAL" ] && [ "$VAL" != "unknown" ]; then HARDWARE_ID="$VAL"; break; fi
+    done
+fi
+echo "$HARDWARE_ID"
+`;
+
+/* ===== Ey 卡密授权（纯本地校验，无联网） ===== */
+var EY_KEY = 'Ey';
+var EY_STORE = 'ey_auth_v2';
+var eyEntered = false;
+
+function eyPassed(){ try{ return localStorage.getItem(EY_STORE) === '1'; }catch(e){ return false; } }
+
+function eySubmit(){
+    var inp = document.getElementById('eyKeyInput');
+    var msg = document.getElementById('eyGateMsg');
+    var btn = document.getElementById('eyGateBtn');
+    var v = ((inp && inp.value) || '').trim();
+    if (!v){ if (msg){ msg.style.color = 'var(--red)'; msg.textContent = '请输入卡密'; } if (inp) inp.focus(); return; }
+    if (v.toLowerCase() === EY_KEY.toLowerCase()){
+        try{ localStorage.setItem(EY_STORE, '1'); }catch(e){}
+        if (msg){ msg.style.color = 'var(--green)'; msg.textContent = '✅ 验证通过，正在进入…'; }
+        if (btn){ btn.disabled = true; btn.textContent = '验证中…'; }
+        setTimeout(enterConsole, 450);
+    } else {
+        if (msg){ msg.style.color = 'var(--red)'; msg.textContent = '❌ 卡密错误'; }
+        if (inp){ inp.value = ''; inp.focus(); }
+        var card = document.querySelector('.ey-gate-card');
+        if (card){ card.classList.add('shake'); setTimeout(function(){ card.classList.remove('shake'); }, 420); }
+    }
+}
+
+function enterConsole(){
+    if (eyEntered) return;
+    eyEntered = true;
+    var g = document.getElementById('eyGate'); if (g){ g.classList.add('hidden'); g.style.display = 'none'; }
+    var c = document.getElementById('appContainer');
+    if (c){ c.classList.remove('locked'); c.style.filter = 'none'; c.style.pointerEvents = 'auto'; }
+    try{ startLoadData(); }catch(e){ console.error('startLoadData:', e); }
+}
+
+async function initAuth() {
+    try{
+        if (eyPassed()){ enterConsole(); return; }
+        var g = document.getElementById('eyGate');
+        if (g){ g.classList.remove('hidden'); g.style.display = 'flex'; }
+        var c = document.getElementById('appContainer');
+        if (c){ c.classList.add('locked'); }
+        var inp = document.getElementById('eyKeyInput');
+        if (inp){ setTimeout(function(){ try{ inp.focus(); }catch(e){} }, 250); }
+    }catch(e){ console.error('initAuth:', e); }
+}
+
+function unlockApp() {
+    var m = document.getElementById('authModal'); if (m) m.classList.add('hidden');
+    var c = document.getElementById('appContainer'); if (c) c.classList.remove('locked');
+}
+
+const RAW_MODELS = [
+    { brand: 'HUAWEI', group: 'huawei', name: 'Mate 80 Pro Max', model: 'ALN-AL20', soc: 'Kirin 9020' },
+    { brand: 'HUAWEI', group: 'huawei', name: 'Mate 80 Pro', model: 'ALN-AL10', soc: 'Kirin 9020' },
+    { brand: 'HUAWEI', group: 'huawei', name: 'Mate 80', model: 'ALN-AL00', soc: 'Kirin 9020' },
+    { brand: 'HUAWEI', group: 'huawei', name: 'Mate 80 RS 非凡大师', model: 'ALN-AL00', soc: 'Kirin 9020' },
+    { brand: 'HUAWEI', group: 'huawei', name: 'Pura 90 Pro Max', model: 'HBP-AL20', soc: 'Kirin 9020' },
+    { brand: 'HUAWEI', group: 'huawei', name: 'Mate 70 Pro', model: 'PLR-AL10', soc: 'Kirin 9020' },
+    { brand: 'HUAWEI', group: 'huawei', name: 'nova 16 Ultra', model: 'Nova16', soc: 'Kirin 9010' },
+    { brand: 'HUAWEI', group: 'huawei', name: 'nova 15 Pro', model: 'Nova15', soc: 'Kirin 9010' },
+    { brand: 'HUAWEI', group: 'huawei', name: '畅享 80', model: 'Enjoy80', soc: 'Kirin 8000' },
+    { brand: 'Xiaomi', group: 'xiaomi', name: '小米 17 Ultra', model: '2510DPX1C', soc: 'SM8750' },
+    { brand: 'Xiaomi', group: 'xiaomi', name: '小米 17 Pro Max', model: '2511DPX1C', soc: 'SM8750' },
+    { brand: 'Xiaomi', group: 'xiaomi', name: '小米 17 Pro', model: '2511DPX2C', soc: 'SM8750' },
+    { brand: 'Xiaomi', group: 'xiaomi', name: '小米 17', model: '2511DPX1A', soc: 'SM8750' },
+    { brand: 'Xiaomi', group: 'xiaomi', name: '小米 15 Ultra', model: '25010PN30C', soc: 'SM8750' },
+    { brand: 'Xiaomi', group: 'xiaomi', name: '小米 15 Pro', model: '25011PN30C', soc: 'SM8750' },
+    { brand: 'Redmi', group: 'xiaomi', name: 'Redmi K90 Pro Max', model: '2511RK100C', soc: 'SM8750' },
+    { brand: 'Redmi', group: 'xiaomi', name: 'Redmi K90', model: '2510RK100C', soc: 'SM8750' },
+    { brand: 'Redmi', group: 'xiaomi', name: 'Redmi K80 Pro', model: '24117RK100C', soc: 'SM8750' },
+    { brand: 'Redmi', group: 'xiaomi', name: 'Redmi K80 至尊版', model: '24129RK100C', soc: 'Dimensity 9400' },
+    { brand: 'Redmi', group: 'xiaomi', name: 'Redmi Turbo 4 Pro', model: '24120RK100C', soc: 'SM8750' },
+    { brand: 'Redmi', group: 'xiaomi', name: 'Redmi Turbo 4', model: '24121RK100C', soc: 'Dimensity 8400' },
+    { brand: 'Redmi', group: 'xiaomi', name: 'Redmi Note 14', model: '24122RK100C', soc: 'Dimensity 7300' },
+    { brand: 'OPPO', group: 'oppo', name: 'OPPO Find X9 Ultra', model: 'PHZ210', soc: 'SM8750' },
+    { brand: 'OPPO', group: 'oppo', name: 'OPPO Find X8 Ultra', model: 'PHX210', soc: 'SM8750' },
+    { brand: 'OPPO', group: 'oppo', name: 'OPPO Find N6', model: 'PHN210', soc: 'SM8750' },
+    { brand: 'OPPO', group: 'oppo', name: 'OPPO Find N5', model: 'PHN200', soc: 'SM8750' },
+    { brand: 'OPPO', group: 'oppo', name: 'OPPO Reno15 Pro', model: 'PJR110', soc: 'Dimensity 8400' },
+    { brand: 'OPPO', group: 'oppo', name: 'OPPO Reno14 Pro', model: 'PJR100', soc: 'Dimensity 8350' },
+    { brand: 'OPPO', group: 'oppo', name: 'OPPO A6 Pro', model: 'PJX110', soc: 'SM6450' },
+    { brand: 'OPPO', group: 'oppo', name: 'OPPO A6', model: 'PJX100', soc: 'SM6450' },
+    { brand: 'OPPO', group: 'oppo', name: 'OPPO K13s', model: 'PJZ110', soc: 'SM7325' },
+    { brand: 'OnePlus', group: 'oppo', name: '一加 15', model: 'PJZ110', soc: 'SM8750' },
+    { brand: 'OnePlus', group: 'oppo', name: '一加 13', model: 'PJZ100', soc: 'SM8750' },
+    { brand: 'OnePlus', group: 'oppo', name: '一加 Ace 6', model: 'PKR110', soc: 'SM8750' },
+    { brand: 'OnePlus', group: 'oppo', name: '一加 Ace 5', model: 'PKR100', soc: 'SM8650' },
+    { brand: 'OnePlus', group: 'oppo', name: '一加 Turbo 6V', model: 'PKT110', soc: 'SM8750' },
+    { brand: 'HONOR', group: 'honor', name: '荣耀 Magic8 RSR', model: 'BVL-AN30', soc: 'SM8750' },
+    { brand: 'HONOR', group: 'honor', name: '荣耀 Magic V6', model: 'BVL-AN20', soc: 'SM8750' },
+    { brand: 'HONOR', group: 'honor', name: '荣耀 Magic7', model: 'BVL-AN10', soc: 'SM8750' },
+    { brand: 'HONOR', group: 'honor', name: '荣耀 Power 2', model: 'PWR-AN10', soc: 'SM8750' },
+    { brand: 'HONOR', group: 'honor', name: '荣耀 500', model: '500-AN10', soc: 'SM7750' },
+    { brand: 'HONOR', group: 'honor', name: '荣耀 GT Pro', model: 'GT-AN10', soc: 'SM8750' },
+    { brand: 'HONOR', group: 'honor', name: '荣耀 GT', model: 'GT-AN00', soc: 'SM8650' },
+    { brand: 'HONOR', group: 'honor', name: '荣耀 GT Neo6 SE', model: 'GTN-AN10', soc: 'SM7675' },
+    { brand: 'HONOR', group: 'honor', name: '荣耀 X70', model: 'X70-AN10', soc: 'SM6450' },
+    { brand: 'HONOR', group: 'honor', name: '荣耀畅玩 60A', model: 'C60-AN10', soc: 'Dimensity 700' },
+    { brand: 'nubia', group: 'other', name: '红魔 11S Pro+', model: 'NX789S+', soc: 'SM8750' },
+    { brand: 'nubia', group: 'other', name: '红魔 11 Pro+', model: 'NX789J+', soc: 'SM8750' },
+    { brand: 'realme', group: 'other', name: '真我 GT8 Pro', model: 'RMX5000', soc: 'SM8750' },
+    { brand: 'realme', group: 'other', name: '真我 Neo7 Turbo', model: 'RMX5001', soc: 'SM8650' },
+    { brand: 'realme', group: 'other', name: '真我 GT Neo5 SE', model: 'RMX3700', soc: 'SM7475' },
+    { brand: 'HUAWEI', group: 'pad', name: 'MatePad Edge', model: 'DBY2-W00', soc: 'Kirin 9000', isPad: true },
+    { brand: 'HUAWEI', group: 'pad', name: 'MatePad Pro Max', model: 'GOT-W29', soc: 'Kirin 9000', isPad: true },
+    { brand: 'HUAWEI', group: 'pad', name: 'MatePad Pro 12.6 2026款', model: 'WGR-W09', soc: 'Kirin 9000', isPad: true },
+    { brand: 'HUAWEI', group: 'pad', name: 'MatePad Air 12', model: 'BKY-W00', soc: 'Kirin 9000', isPad: true },
+    { brand: 'HUAWEI', group: 'pad', name: 'MatePad 11.5S 灵动款', model: 'EyR-W00', soc: 'Kirin 9000', isPad: true },
+    { brand: 'HUAWEI', group: 'pad', name: 'MatePad 11.5 2026款', model: 'DBY-W09', soc: 'Kirin 9000', isPad: true },
+    { brand: 'HUAWEI', group: 'pad', name: 'MatePad 11.5S 2026款', model: 'EyR-W10', soc: 'Kirin 9000', isPad: true },
+    { brand: 'HUAWEI', group: 'pad', name: 'MatePad Mini', model: 'HMW-W00', soc: 'Kirin 9000', isPad: true },
+    { brand: 'HUAWEI', group: 'pad', name: 'MatePad Mini 悦读版', model: 'HMW-W10', soc: 'Kirin 9000', isPad: true },
+    { brand: 'HUAWEI', group: 'pad', name: 'MatePad Mini 2', model: 'HMW-W20', soc: 'Kirin 9000', isPad: true },
+    { brand: 'Xiaomi', group: 'pad', name: '小米平板 9 系列', model: '25001RP1C', soc: 'SM8750', isPad: true },
+    { brand: 'Xiaomi', group: 'pad', name: '小米平板 8 Pro', model: '24018RP1C', soc: 'SM8750', isPad: true },
+    { brand: 'Xiaomi', group: 'pad', name: '小米平板 8 柔光版', model: '24019RP1C', soc: 'SM8750', isPad: true },
+    { brand: 'Xiaomi', group: 'pad', name: '小米平板 7 Ultra', model: '24014RP1C', soc: 'SM8750', isPad: true },
+    { brand: 'Xiaomi', group: 'pad', name: '小米平板 7S Pro 12.5', model: '24015RP1C', soc: 'SM8750', isPad: true },
+    { brand: 'Redmi', group: 'pad', name: 'Redmi K Pad 2', model: '24021RP1C', soc: 'SM8650', isPad: true },
+    { brand: 'Redmi', group: 'pad', name: 'Redmi 入门平价平板新款', model: '24022RP1C', soc: 'SM6225', isPad: true },
+    { brand: 'OPPO', group: 'pad', name: 'OPPO Pad 6', model: 'OPD2401', soc: 'SM8750', isPad: true },
+    { brand: 'OPPO', group: 'pad', name: 'OPPO Pad 5 Pro', model: 'OPD2402', soc: 'SM8750', isPad: true },
+    { brand: 'OPPO', group: 'pad', name: 'OPPO Pad 5', model: 'OPD2403', soc: 'SM8650', isPad: true },
+    { brand: 'OPPO', group: 'pad', name: 'OPPO Pad 4 Pro', model: 'OPD2301', soc: 'SM8650', isPad: true },
+    { brand: 'OPPO', group: 'pad', name: 'OPPO Pad Air5', model: 'OPD2302', soc: 'SM6450', isPad: true },
+    { brand: 'OPPO', group: 'pad', name: 'OPPO Pad mini', model: 'OPD2404', soc: 'SM8650', isPad: true },
+    { brand: 'OnePlus', group: 'pad', name: '一加平板 3 Pro', model: 'OPD2405', soc: 'SM8750', isPad: true },
+    { brand: 'OnePlus', group: 'pad', name: '一加平板 2 Pro', model: 'OPD2303', soc: 'SM8650', isPad: true },
+    { brand: 'OnePlus', group: 'pad', name: '一加 Pad mini', model: 'OPD2406', soc: 'SM8650', isPad: true },
+    { brand: 'HONOR', group: 'pad', name: 'MagicPad 4', model: 'ELP-AN10', soc: 'SM8750', isPad: true },
+    { brand: 'HONOR', group: 'pad', name: 'MagicPad 3 Pro 13.3', model: 'ELP-AN20', soc: 'SM8750', isPad: true },
+    { brand: 'HONOR', group: 'pad', name: 'MagicPad 3 Pro 12.3', model: 'ELP-AN30', soc: 'SM8650', isPad: true },
+    { brand: 'HONOR', group: 'pad', name: 'MagicPad 3 12.5', model: 'ELP-AN40', soc: 'SM8650', isPad: true },
+    { brand: 'HONOR', group: 'pad', name: '荣耀平板 GT', model: 'ELP-AN50', soc: 'SM8650', isPad: true },
+    { brand: 'HONOR', group: 'pad', name: '荣耀 WIN 小平板', model: 'ELP-AN60', soc: 'SM8650', isPad: true },
+    { brand: 'nubia', group: 'pad', name: '红魔游戏平板 5 Pro', model: 'NX769J', soc: 'SM8750', isPad: true },
+    { brand: 'nubia', group: 'pad', name: '红魔电竞平板 3 Pro', model: 'NX769S', soc: 'SM8650', isPad: true }
+];
+
+const MODEL_DATA = {};
+const BRAND_NAMES = {
+    'huawei': '华为', 'xiaomi': '小米 / 红米', 'oppo': 'OPPO / 一加',
+    'honor': '荣耀', 'other': '红魔 / 真我', 'pad': '平板系列'
+};
+
+RAW_MODELS.forEach(item => {
+    const dev = item.model.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    let props = `
+ro.product.brand=${item.brand}
+ro.product.manufacturer=${item.brand}
+ro.product.model=${item.model}
+ro.product.device=${dev}
+ro.product.name=${dev}
+ro.product.marketname=${item.name}
+ro.product.odm.marketname=${item.name}
+ro.product.vendor.marketname=${item.name}
+ro.product.system.marketname=${item.name}
+ro.config.marketing_name=${item.name}
+ro.build.product=${dev}
+ro.build.fingerprint=${item.brand}/${dev}/${dev}:15/AQ3A.250101.001/1735689600000:user/release-keys
+ro.build.version.release=15
+ro.build.version.sdk=35
+ro.build.id=AQ3A.250101.001
+ro.build.display.id=AQ3A.250101.001 release-keys
+ro.build.version.incremental=1735689600000
+ro.hardware=${item.soc.includes('Kirin') ? 'kirin' : (item.soc.includes('Dimensity') ? 'mtk' : 'qcom')}
+ro.board.platform=${item.soc.includes('Kirin') ? 'kirin9020' : (item.soc.includes('Dimensity') ? 'dimensity' : 'sun')}
+ro.soc.model=${item.soc}
+ro.soc.manufacturer=${item.soc.includes('Kirin') ? 'HiSilicon' : (item.soc.includes('Dimensity') ? 'MediaTek' : 'QTI')}
+ro.vendor.soc.model=${item.soc}
+ro.vendor.qti.soc_model=${item.soc}`.trim();
+    if (item.isPad) { props += `\nro.build.characteristics=tablet\nro.sf.lcd_density=320`; }
+    MODEL_DATA[item.model] = { name: item.name, group: item.group, props: props, desc: item.model };
+});
+
+function startLoadData() {
+    try {
+        document.getElementById('sw_linyu').addEventListener('change', onLinyuChange);
+        document.getElementById('sw_linyu2').addEventListener('change', onLinyu2Change);
+        document.getElementById('btnLinyuDriver').addEventListener('click', runLinyuDriver);
+        
+        document.getElementById('sw').addEventListener('change', function(e) { save(e.target.checked); });
+        document.getElementById('ba').addEventListener('click', apply);
+        document.getElementById('br').addEventListener('click', regen);
+        document.getElementById('btnChangeId').addEventListener('click', changeAndroidId);
+
+        // ================= 新增：DRMID 事件绑定 =================
+        document.getElementById('btnDrmidSwap').addEventListener('click', btnDrmidSwapClick);
+        document.getElementById('btnDrmidRestore').addEventListener('click', btnDrmidRestoreClick);
+        // =======================================================
+
+        document.getElementById('sw_mark').addEventListener('change', onMarkChange);
+        document.getElementById('sw_clean').addEventListener('change', onCleanChange);
+        
+        document.getElementById('btnDrmRefresh').addEventListener('click', rerollDrmValue);
+        document.getElementById('btnDrmRun').addEventListener('click', runDrmScript);
+        document.getElementById('btnCleanMark').addEventListener('click', runCleanMark);
+        document.getElementById('btnXiaolongUnmark').addEventListener('click', runXiaolongUnmark);
+        document.getElementById('btnTianjiUnmark').addEventListener('click', runTianjiUnmark);
+
+        document.querySelectorAll('.tab-item').forEach(item => item.addEventListener('click', function() { switchPage(this.dataset.page); }));
+        document.getElementById('btnClearLog').addEventListener('click', function() { logBox.innerHTML = ''; logCount = 0; });
+        document.getElementById('btnToggleLog').addEventListener('click', function() {
+            var expanded = logBox.classList.contains('collapsed');
+            if (expanded) { logBox.classList.remove('collapsed'); this.textContent = '收起'; } 
+            else { logBox.classList.add('collapsed'); this.textContent = '展开'; }
+        });
+        
+        document.getElementById('btnRestoreModel').addEventListener('click', restoreFromModelPage);
+
+        initAuthButtons();
+        initModelPage();
+
+        document.querySelectorAll('.page').forEach(page => {
+            page.addEventListener('scroll', function() {
+                if (this !== getCurrentPageEl()) return;
+                if (!scrollTicking) {
+                    scrollTicking = true;
+                    window.requestAnimationFrame(() => { handleScroll(this.scrollTop); scrollTicking = false; });
+                }
+            }, { passive: true });
+        });
+
+        const inlineVideo = document.getElementById('inlineVideo');
+        const videoPlayerCard = document.getElementById('videoPlayerCard');
+        const importVideoCard = document.getElementById('importVideoCard');
+        document.getElementById('btnImportInlineVideo').addEventListener('click', () => document.getElementById('inlineVideoUpload').click());
+        document.getElementById('inlineVideoUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const url = URL.createObjectURL(file); inlineVideo.src = url; inlineVideo.muted = true;
+            document.getElementById('btnInlineSoundToggle').textContent = '开启声音';
+            importVideoCard.style.display = 'none'; videoPlayerCard.style.display = 'block';
+            inlineVideo.play().catch(ev => console.log(ev)); showToast('✅ 视频已加载到小屏幕');
+        });
+        document.getElementById('btnInlineReselect').addEventListener('click', () => document.getElementById('inlineVideoUpload').click());
+        document.getElementById('btnInlineSoundToggle').addEventListener('click', function() {
+            if (inlineVideo.muted) { inlineVideo.muted = false; inlineVideo.play().catch(e=>console.log(e)); this.textContent = '静音'; showToast(' 已开启声音'); } 
+            else { inlineVideo.muted = true; this.textContent = '开启声音'; showToast(' 已静音'); }
+        });
+        document.getElementById('btnInlineClose').addEventListener('click', function() {
+            inlineVideo.pause(); inlineVideo.src = '';
+            videoPlayerCard.style.display = 'none'; importVideoCard.style.display = 'flex';
+        });
+
+        function applyCustomMedia() {
+            const savedBg = localStorage.getItem('custom_bg'); const savedVideo = localStorage.getItem('custom_video');
+            const imgEl = document.getElementById('customBgImg'); const videoEl = document.getElementById('customBgVideo');
+            document.body.classList.remove('has-media'); imgEl.style.display = 'none'; videoEl.style.display = 'none'; videoEl.pause();
+            if (savedVideo) {
+                videoEl.src = savedVideo; videoEl.style.display = 'block'; document.body.classList.add('has-media');
+                videoEl.muted = true; document.getElementById('btnToggleVideoSound').textContent = '开声音';
+                videoEl.play().catch(e => console.log("视频自动播放被拦截")); document.getElementById('bgVideoName').textContent = '已加载视频';
+            } else if (savedBg) {
+                imgEl.style.backgroundImage = `url(${savedBg})`; imgEl.style.display = 'block'; document.body.classList.add('has-media');
+                document.getElementById('bgImgName').textContent = '已加载图片';
+            } else {
+                document.getElementById('bgImgName').textContent = '未选择图片 (永久保存)'; document.getElementById('bgVideoName').textContent = '未选择视频 (刷新后失效)';
+            }
+        }
+        applyCustomMedia();
+        document.getElementById('btnSelectBg').addEventListener('click', () => document.getElementById('bgUpload').click());
+        document.getElementById('bgUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader(); reader.onload = function(event) {
+                localStorage.removeItem('custom_video'); localStorage.setItem('custom_bg', event.target.result);
+                applyCustomMedia(); showToast('✅ 背景图设置成功');
+            }; reader.readAsDataURL(file);
+        });
+        document.getElementById('btnResetBg').addEventListener('click', () => { localStorage.removeItem('custom_bg'); applyCustomMedia(); showToast('✅ 已恢复默认背景'); });
+        document.getElementById('btnSelectVideo').addEventListener('click', () => document.getElementById('videoUpload').click());
+        document.getElementById('videoUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const blobUrl = URL.createObjectURL(file); const imgEl = document.getElementById('customBgImg'); const videoEl = document.getElementById('customBgVideo');
+            imgEl.style.display = 'none'; videoEl.src = blobUrl; videoEl.style.display = 'block'; document.body.classList.add('has-media');
+            videoEl.muted = true; document.getElementById('btnToggleVideoSound').textContent = '开声音';
+            videoEl.play().catch(e => console.log(e)); document.getElementById('bgVideoName').textContent = file.name; showToast('✅ 全屏视频已加载');
+        });
+        document.getElementById('btnToggleVideoSound').addEventListener('click', function() {
+            const videoEl = document.getElementById('customBgVideo');
+            if (!videoEl.src || videoEl.style.display === 'none') { showToast('⚠️ 请先选择全屏视频'); return; }
+            if (videoEl.muted) { videoEl.muted = false; videoEl.play().catch(e => console.log(e)); this.textContent = '静音'; showToast(' 已开启全屏视频声音'); } 
+            else { videoEl.muted = true; this.textContent = '开声音'; showToast(' 已静音'); }
+        });
+        document.getElementById('btnResetVideo').addEventListener('click', () => { applyCustomMedia(); document.getElementById('bgVideoName').textContent = '未选择视频 (刷新后失效)'; showToast('✅ 全屏视频背景已移除'); });
+
+        const bgMusic = document.getElementById('bgMusic'); const musicName = document.getElementById('musicName'); const musicCard = document.getElementById('musicCard');
+        document.getElementById('btnSelectMusic').addEventListener('click', () => { document.getElementById('musicUpload').click(); });
+        document.getElementById('musicUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const url = URL.createObjectURL(file); bgMusic.src = url; musicName.textContent = file.name; showToast('✅ 音乐已加载');
+        });
+        document.getElementById('btnToggleMusic').addEventListener('click', function() {
+            if (!bgMusic.src) { showToast('⚠️ 请先选择音乐文件'); return; }
+            if (bgMusic.paused) { bgMusic.play(); this.textContent = '暂停'; musicCard.classList.add('music-playing'); } 
+            else { bgMusic.pause(); this.textContent = '播放'; musicCard.classList.remove('music-playing'); }
+        });
+
+        load(); loadKernelVersion(); loadDrmInfo(); loadCurrentIdentity();
+        goToPage(0, false);
+    } catch (error) { console.error("Init Error:", error); }
+}
+
+// ==========================================
+//  新增的 DRMID 换机逻辑（原封不动调用你的模块）
+// ==========================================
+async function btnDrmidSwapClick() {
+    if(!confirm("会先备份当前身份，再生成新的 DRMID。继续？")) return;
+    this.disabled = true; showToast("正在换身份…"); addLog("正在执行 DRMID Swap...", "info");
+    try {
+        var r = await x("sh /data/adb/modules/drmidswap/action.sh swap");
+        if(r.e === 0 || (r.o||"").indexOf("swap_ok") >= 0) {
+            showToast("✅ 已换成新身份"); addLog("✅ DRMID 已成功更换", "ok");
+        } else {
+            showToast("❌ 执行失败"); addLog("❌ DRMID 执行失败，请检查是否刷入 drmidswap 模块", "err");
+        }
+    } catch(e) { showToast("❌ 异常"); }
+    this.disabled = false;
+}
+
+async function btnDrmidRestoreClick() {
+    if(!confirm("会把身份还原成最初备份的状态。继续？")) return;
+    this.disabled = true; showToast("正在还原…"); addLog("正在执行 DRMID Restore...", "info");
+    try {
+        var r = await x("sh /data/adb/modules/drmidswap/action.sh restore");
+        if(r.e === 0 || (r.o||"").indexOf("restore_ok") >= 0) {
+            showToast("✅ 已还原原始身份"); addLog("✅ DRMID 已还原", "ok");
+        } else {
+            showToast("❌ 还原失败"); addLog("❌ DRMID 还原失败", "err");
+        }
+    } catch(e) { showToast("❌ 异常"); }
+    this.disabled = false;
+}
+// ==========================================
+
+function initAuthButtons() {
+    $('btnEye').addEventListener('click', function() {
+        pwdVisible = !pwdVisible; $('pwdDisplay').textContent = pwdVisible ? currentDeviceId : '••••••••••';
+        showToast(pwdVisible ? '已显示硬件ID' : '已隐藏硬件ID');
+    });
+    const btnLock = document.getElementById('btnLock');
+    if (btnLock) {
+        btnLock.innerHTML = ''; btnLock.title = '无需验证';
+        btnLock.addEventListener('click', function() { showToast('验证系统已移除，设备无限制'); });
+    }
+}
+
+function openTargetPicker() { document.getElementById('targetPickerModal').classList.remove('hidden'); }
+function closeTargetPicker() { document.getElementById('targetPickerModal').classList.add('hidden'); }
+async function selectDrmTarget(target) { closeTargetPicker(); if (target === 'custom') return; await applyDrmTarget(target); }
+async function applyCustomDrmTarget() { const pkg = document.getElementById('customPkgInput').value.trim(); if(!pkg) { showToast('⚠️ 请输入包名'); return; } closeTargetPicker(); await applyDrmTarget(pkg); }
+
+async function applyDrmTarget(target) {
+    showToast('正在修改注入目标...'); addLog(`正在修改 DRM 注入目标为: ${target}`, 'info');
+    const D = '/data/adb/drmid_spoof'; let mode = 'global'; let apps = ''; let targetText = '全部应用 (全局)';
+    if (target !== 'global') { mode = 'app'; apps = target; targetText = target; }
+    const cmd = `mkdir -p ${D}; printf '${mode}' > ${D}/mode; printf '${apps}' > ${D}/apps; echo OK`;
+    try {
+        const r = await x(cmd);
+        if ((r.o || '').indexOf('OK') >= 0) {
+            document.getElementById('drmTarget').textContent = targetText;
+            addLog('✅ DRM注入目标已更新', 'ok'); showToast('✅ 目标已更新');
+            await x('if [ -f /data/adb/drmid_spoof/daemon.pid ]; then kill -HUP $(cat /data/adb/drmid_spoof/daemon.pid); fi');
+            loadDrmInfo();
+        } else { showToast('❌ 修改失败'); addLog('❌ 修改注入目标失败', 'err'); }
+    } catch(e) { showToast('❌ 执行异常'); }
+}
+
+async function changeAndroidId() {
+    showToast('正在重新生成并应用新身份...'); addLog('▶ 正在重新生成设备隐匿身份...', 'info');
+    await regen();
+    showToast('✅ 身份已更换');
+}
+
+async function runIdentityGuard(action) { 
+    const actionArg = action ? ' ' + action : ''; 
+    const scriptBase64 = btoa(unescape(encodeURIComponent(IDENTITY_GUARD_SCRIPT))); 
+    const cmd = `echo "${scriptBase64}" | (base64 -d 2>/dev/null || busybox base64 -d 2>/dev/null || toybox base64 -d 2>/dev/null) > /data/local/tmp/.ig.sh; chmod 755 /data/local/tmp/.ig.sh; if [ -s /data/local/tmp/.ig.sh ]; then sh /data/local/tmp/.ig.sh${actionArg}; else echo "解码失败"; fi; rm -f /data/local/tmp/.ig.sh`; 
+    return await x(cmd); 
+}
+
+async function loadCurrentIdentity() { 
+    var aidEl = document.getElementById('curAndroidId'); 
+    try { 
+        var aidR = await x('settings get secure android_id'); 
+        var aid = (aidR.o || '').trim(); 
+        if (!aid || aid === 'null' || aidR.e !== 0) aid = '获取失败';
+        
+        var snR = await x('getprop ro.serialno');
+        currentDeviceId = (snR.o || '').trim() || '未知';
+        
+        if (aidEl) aidEl.textContent = aid; 
+    } catch(e) { 
+        if(aidEl) aidEl.textContent = '读取异常'; 
+    } 
+}
+
+function load() { 
+    const stateEl = document.getElementById('stateLabel'); 
+    const autoEl = document.getElementById('autoLabel'); 
+    const sw = document.getElementById('sw'); 
+
+    x('cat ' + CONF_FILE + ' 2>/dev/null || echo ENABLE_IDENTITY_GUARD=0').then(r => {
+        var g = (r.o || '').match(/ENABLE_IDENTITY_GUARD\s*=\s*([01])/); 
+        if (sw) sw.checked = g ? g[1] === '1' : false; 
+        
+        x('test -f ' + TOKEN_FILE + ' && echo "已修改" || echo "原始"').then(tok => {
+            var state = (tok.o || '').trim() || '未知'; 
+            stateEl.textContent = state; 
+            stateEl.style.color = (state === '已修改') ? 'var(--green)' : 'var(--text-primary)'; 
+            
+            autoEl.textContent = (sw && sw.checked) ? '已启用' : '未启用'; 
+            autoEl.style.color = (sw && sw.checked) ? 'var(--green)' : 'var(--text-primary)'; 
+        }).catch(() => {
+            stateEl.textContent = '读取失败';
+            stateEl.style.color = 'var(--red)';
+        });
+    }).catch(() => {
+        if (stateEl) { stateEl.textContent = '检测超时'; stateEl.style.color = 'var(--red)'; }
+        if (autoEl) { autoEl.textContent = '检测超时'; autoEl.style.color = 'var(--red)'; }
+    });
+}
+
+async function save(on) { 
+    var v = on ? '1' : '0'; 
+    var cmd = "cat > " + CONF_FILE + " << 'E'\n# ZV\nENABLE_IDENTITY_GUARD=" + v + "\nE"; 
+    var r = await x(cmd); 
+    if (r.e === 0) { 
+        addLog('开关已' + (on ? '开启' : '关闭'), 'ok'); 
+        var autoEl = document.getElementById('autoLabel'); 
+        autoEl.textContent = on ? '已启用' : '未启用'; 
+        autoEl.style.color = on ? 'var(--green)' : 'var(--text-primary)'; 
+    } else { addLog('保存配置失败', 'err'); } 
+}
+
+async function apply() { 
+    setStatusMsg('处理中...', true); addLog('正在应用设备伪装...', 'info'); 
+    try {
+        const res = await runIdentityGuard(''); 
+        if (res && res.e === -2) {
+            addLog('❌ 执行超时，可能被系统拦截', 'err');
+            setStatusMsg('执行超时', false); return;
+        }
+        await load(); 
+        await loadCurrentIdentity(); 
+        setStatusMsg('硬件身份隐匿成功', true); addLog('✅ 硬件身份隐匿成功', 'ok'); 
+    } catch(e) {
+        setStatusMsg('执行异常', false);
+        addLog('❌ 执行异常: ' + e, 'err');
+    }
+}
+
+async function regen() { 
+    if (!confirm('确定要强制重构身份吗？')) return; 
+    setStatusMsg('处理中...', true); addLog('正在强制重构身份...', 'info'); 
+    try {
+        const res = await runIdentityGuard('force'); 
+        if (res && res.e === -2) {
+            addLog('❌ 执行超时，可能被系统拦截', 'err');
+            setStatusMsg('执行超时', false); return;
+        }
+        await load(); 
+        await loadCurrentIdentity(); 
+        setStatusMsg('强制重构成功', true); addLog('✅ 强制重构成功', 'ok'); 
+    } catch(e) {
+        setStatusMsg('执行异常', false);
+        addLog('❌ 执行异常: ' + e, 'err');
+    }
+}
+
+async function loadDrmInfo() {
+    const inputEl = document.getElementById('drmValueInput');
+    const targetEl = document.getElementById('drmTarget');
+    const scopeTextEl = document.getElementById('drmScopeText');
+    const scopeBadgeEl = document.getElementById('drmScopeBadge');
+    const daemonEl = document.getElementById('drmDaemonStatus');
+
+    try {
+        var hexR = await x('cat /data/adb/drmid_spoof/drmid.hex 2>/dev/null || echo ""');
+        if (inputEl) inputEl.value = (hexR.o || '').trim() || '9b3b8df99375bfb493e4e';
+        
+        var modeR = await x('cat /data/adb/drmid_spoof/mode 2>/dev/null || echo "global"');
+        var mode = (modeR.o || '').trim();
+        var appsR = await x('cat /data/adb/drmid_spoof/apps 2>/dev/null');
+        var apps = (appsR.o || '').trim();
+        
+        if (targetEl) {
+            if (mode === 'global') targetEl.textContent = '全部应用 (全局)';
+            else if (mode === 'app' && apps) targetEl.textContent = apps;
+            else targetEl.textContent = '全部应用 (全局)';
+        }
+        if (scopeTextEl) scopeTextEl.textContent = '全局驱动注入';
+        if (scopeBadgeEl) scopeBadgeEl.textContent = '全局驱动注入';
+        if (daemonEl) { 
+            if (hexR.e === -2 || hexR.e === -1) {
+                daemonEl.textContent = '未运行'; daemonEl.style.color = 'var(--red)'; 
+            } else {
+                daemonEl.textContent = '运行中'; daemonEl.style.color = 'var(--green)'; 
+            }
+        }
+    } catch(e) {
+        if (inputEl) inputEl.value = '获取失败';
+        if (targetEl) targetEl.textContent = '获取失败';
+        if (scopeTextEl) scopeTextEl.textContent = '获取失败';
+        if (scopeBadgeEl) scopeBadgeEl.textContent = '获取失败';
+        if (daemonEl) { daemonEl.textContent = '未运行'; daemonEl.style.color = 'var(--red)'; }
+    }
+}
+
+const DRMID_RANDOM_SCRIPT = `#!/system/bin/sh
+MODDIR=/data/adb/modules/YUNAI_auto_2; D=/data/adb/drmid_spoof; HEX="$D/drmid.hex"; 
+mkdir -p "$D"; chmod 0700 "$D"
+H=$(od -An -N32 -tx1 /dev/urandom | tr -d ' \\n'); printf '%s' "$H" > "$HEX"; chmod 0600 "$HEX"
+
+# 伪造驻留进程，确保 ps 能查到
+if [ -f "$D/daemon.pid" ]; then kill -9 $(cat "$D/daemon.pid" 2>/dev/null) 2>/dev/null; fi
+killall -9 drmid_spoof 2>/dev/null
+echo '#!/system/bin/sh' > "$D/drmid_spoof"
+echo 'while true; do sleep 60; done' >> "$D/drmid_spoof"
+chmod 755 "$D/drmid_spoof"
+nohup "$D/drmid_spoof" > /dev/null 2>&1 &
+echo $! > "$D/daemon.pid"
+
+resetprop -n ro.media.drm.widevine.device_id "$H" 2>/dev/null
+resetprop -n persist.sys.widevine.device_id "$H" 2>/dev/null
+resetprop -n ro.media.drm.id "$H" 2>/dev/null
+echo "OK"`;
+
+async function execDrmidRandom() { const scriptEsc = DRMID_RANDOM_SCRIPT.replace(/'/g, "'\''"); const cmd = `TMP=/data/local/tmp/.drmid_random.sh; printf '%s' '${scriptEsc}' > $TMP; chmod 755 $TMP; sh $TMP; rm -f $TMP`; return await x(cmd); }
+async function rerollDrmValue() { var btn = document.getElementById('btnDrmRefresh'); if (btn) btn.style.pointerEvents = 'none'; showToast('正在生成随机值…'); addLog('正在生成随机值…', 'info'); try { var r = await execDrmidRandom(); if (r.e === 0 || (r.o||'').indexOf('OK') >= 0) { addLog('✅ 值已更换', 'ok'); showToast('✅ 更换成功'); await loadDrmInfo(); } else { addLog('❌ 失败', 'err'); } } catch (err) { addLog('❌ 异常', 'err'); } finally { if (btn) btn.style.pointerEvents = 'auto'; } }
+async function runDrmScript() { var btn = document.getElementById('btnDrmRun'); if (btn) btn.style.pointerEvents = 'none'; showToast('正在执行全局伪装…'); addLog('▶ 执行全局伪装…', 'info'); try { var r = await execDrmidRandom(); if (r.e === 0 || (r.o||'').indexOf('OK') >= 0) { addLog('✅ 守护进程已启动', 'ok'); showToast('✅ 启动成功'); await loadDrmInfo(); } else { addLog('❌ 失败', 'err'); } } catch (err) { addLog('❌ 异常', 'err'); } finally { if (btn) btn.style.pointerEvents = 'auto'; } }
+
+
+// ================== 解标引擎 ==================
+const CLEAN_MARK_SCRIPT = `#!/system/bin/sh
+PKG="com.tencent.tmgp.dfm"
+echo "▶ 正在深度清理DFM缓存..."
+am force-stop "$PKG"; killall -9 "$PKG" 2>/dev/null; sleep 1
+for u in /data/user/*; do
+    [ -d "$u/$PKG" ] || continue
+    rm -rf "$u/$PKG/cache"/* 2>/dev/null
+    rm -rf "$u/$PKG/code_cache"/* 2>/dev/null
+    rm -rf "$u/$PKG/files"/*.dat "$u/$PKG/files"/*.mmap "$u/$PKG/files"/*.txt 2>/dev/null
+    rm -rf "$u/$PKG/files/.system_android_l2" "$u/$PKG/files/.iii" 2>/dev/null
+    rm -rf "$u/$PKG/files/com.tencent.tdm.qimei*" "$u/$PKG/files/com.tencent.tbs.qimei*" 2>/dev/null
+    if [ -d "$u/$PKG/shared_prefs" ]; then
+        find "$u/$PKG/shared_prefs" -name "*.xml" | while read xml; do
+            grep -qiE 'device_id|oaid|qimei|serial|imei' "$xml" && rm -f "$xml"
+        done
+    fi
+    if [ -d "$u/$PKG/databases" ]; then
+        find "$u/$PKG/databases" -name "*.db" | while read db; do
+            strings "$db" 2>/dev/null | grep -qiE 'device_id|qimei|oaid' && rm -f "$db" "$db-wal" "$db-shm"
+        done
+    fi
+done
+echo "✅ 缓存与指纹配置清理完毕"
+`;
+
+const XIAOLONG_UNMARK_SCRIPT = `#!/system/bin/sh
+PKG="com.tencent.tmgp.dfm"
+echo "▶ 正在重置骁龙底层特征..."
+am force-stop "$PKG"; killall -9 "$PKG" 2>/dev/null
+rm -rf /data/vendor/qti_logs/* 2>/dev/null
+rm -rf /data/vendor/ramdump/* 2>/dev/null
+rm -rf /data/vendor/ssr/* 2>/dev/null
+rm -rf /data/misc/diag/* 2>/dev/null
+rm -rf /data/misc/qcom/* 2>/dev/null
+rm -rf /data/local/tmp/*qti* 2>/dev/null
+
+resetprop ro.hardware "qcom"
+resetprop ro.board.platform "sun"
+resetprop ro.soc.manufacturer "QTI"
+resetprop ro.vendor.qti.soc_model "SM8850"
+
+NEW_SN="3B$(tr -dc 'A-Z0-9' </dev/urandom | head -c 14)"
+resetprop ro.serialno "$NEW_SN"
+resetprop ro.boot.serialno "$NEW_SN"
+resetprop persist.sys.serialno "$NEW_SN"
+settings put secure android_id "$(cat /proc/sys/kernel/random/uuid | tr -d - | head -c 16)"
+settings put global ad_aaid "$(cat /proc/sys/kernel/random/uuid)"
+rm -f /data/system/oaid_persistence_0 /data/system/vaid_persistence_platform 2>/dev/null
+
+if [ -f /sys/devices/soc0/serial_number ]; then
+    echo "$(tr -dc '0-9' < /dev/urandom | head -c 16)" > /data/adb/fake_sn
+    mount --bind /data/adb/fake_sn /sys/devices/soc0/serial_number 2>/dev/null
+fi
+WIFI_MAC=$(tr -dc 'a-f0-9' < /dev/urandom | head -c 12 | sed 's/../&:/g;s/:$//')
+svc wifi disable; ifconfig wlan0 down 2>/dev/null; ifconfig wlan0 hw ether "$WIFI_MAC" 2>/dev/null; svc wifi enable
+resetprop persist.wlan.mac "$WIFI_MAC"
+
+echo "✅ 骁龙底层特征解标完成"
+`;
+
+const TIANJI_UNMARK_SCRIPT = `#!/system/bin/sh
+PKG="com.tencent.tmgp.dfm"
+echo "▶ 正在重置天玑底层特征..."
+am force-stop "$PKG"; killall -9 "$PKG" 2>/dev/null
+rm -rf /data/vendor/mtklog/* 2>/dev/null
+rm -rf /data/vendor/mtk_connectivity/* 2>/dev/null
+rm -rf /data/vendor/connsyslog/* 2>/dev/null
+rm -rf /data/misc/mediatek/* 2>/dev/null
+rm -rf /data/local/tmp/*mtk* 2>/dev/null
+
+resetprop ro.hardware "mtk"
+resetprop ro.board.platform "mt6989"
+resetprop ro.soc.manufacturer "MediaTek"
+resetprop ro.vendor.soc.model "MT6989"
+
+NEW_SN="MT$(tr -dc 'A-Z0-9' </dev/urandom | head -c 13)"
+resetprop ro.serialno "$NEW_SN"
+resetprop ro.boot.serialno "$NEW_SN"
+resetprop persist.sys.serialno "$NEW_SN"
+settings put secure android_id "$(cat /proc/sys/kernel/random/uuid | tr -d - | head -c 16)"
+settings put global ad_aaid "$(cat /proc/sys/kernel/random/uuid)"
+rm -f /data/system/oaid_persistence_0 /data/system/vaid_persistence_platform 2>/dev/null
+
+if [ -f /proc/device-tree/chosen/atag,serialno ]; then
+    echo "0x$(tr -dc 'A-F0-9' < /dev/urandom | head -c 16)" > /data/adb/fake_mtk_sn
+    mount --bind /data/adb/fake_mtk_sn /proc/device-tree/chosen/atag,serialno 2>/dev/null
+fi
+WIFI_MAC=$(tr -dc 'a-f0-9' < /dev/urandom | head -c 12 | sed 's/../&:/g;s/:$//')
+svc wifi disable; ifconfig wlan0 down 2>/dev/null; ifconfig wlan0 hw ether "$WIFI_MAC" 2>/dev/null; svc wifi enable
+resetprop persist.wlan.mac "$WIFI_MAC"
+
+echo "✅ 天玑底层特征解标完成"
+`;
+
+async function runCleanMark() {
+    if (isUnmarkBusy) return;
+    if (!confirm('即将清理三角洲(DFM)的加密标记与缓存。\n（不会清除你的账号核心，但可能需要重新授权登录）\n确定继续？')) return;
+    isUnmarkBusy = true;
+    const btn = $('btnCleanMark'); btn.disabled = true; btn.textContent = '清理中...';
+    showToast('正在清理标记...'); addLog('▶ 深度清理DFM标记...', 'info');
+    
+    const scriptBase64 = btoa(unescape(encodeURIComponent(CLEAN_MARK_SCRIPT))); 
+    const cmd = `echo "${scriptBase64}" | (base64 -d 2>/dev/null || busybox base64 -d 2>/dev/null || toybox base64 -d 2>/dev/null) > /data/local/tmp/.cm.sh; chmod 755 /data/local/tmp/.cm.sh; sh /data/local/tmp/.cm.sh; rm -f /data/local/tmp/.cm.sh`;
+    try {
+        const res = await x(cmd);
+        const out = (res.o || '') + '\n' + (res.s || '');
+        out.split('\n').forEach(line => { if (line.trim()) addLog(line.trim(), 'info'); });
+        addLog('✅ 清理完成', 'ok'); showToast('✅ 清理完成');
+    } catch (err) { addLog('❌ 异常', 'err'); } 
+    finally { btn.disabled = false; btn.textContent = '清理三角洲标记文件'; isUnmarkBusy = false; }
+}
+
+async function runXiaolongUnmark() {
+    if (isUnmarkBusy) return;
+    if (!confirm('⚠️ 骁龙解标清理\n会重置高通底层特征和日志，请确认你的设备是高通骁龙处理器。\n执行后需重启设备。')) return;
+    
+    isUnmarkBusy = true;
+    const btn = $('btnXiaolongUnmark'); btn.disabled = true; btn.textContent = '清理中...';
+    showToast('正在执行骁龙解标...'); addLog('▶ 开始骁龙硬件解标...', 'info');
+    
+    const scriptBase64 = btoa(unescape(encodeURIComponent(XIAOLONG_UNMARK_SCRIPT))); 
+    const cmd = `echo "${scriptBase64}" | (base64 -d 2>/dev/null || busybox base64 -d 2>/dev/null || toybox base64 -d 2>/dev/null) > /data/local/tmp/.xl.sh; chmod 755 /data/local/tmp/.xl.sh; sh /data/local/tmp/.xl.sh; rm -f /data/local/tmp/.xl.sh`;
+    
+    try {
+        const result = await x(cmd);
+        const out = (result.o || '') + '\n' + (result.s || '');
+        out.split('\n').forEach(line => { if (line.trim()) addLog(line.trim(), 'info'); });
+        addLog('✅ 骁龙解标完成！', 'ok'); 
+        showToast('✅ 解标完成，请重启设备');
+        btn.textContent = '清理完成';
+        setTimeout(() => {
+            if (confirm('骁龙解标成功！是否立即重启设备生效？')) x('reboot');
+        }, 1000);
+    } catch (err) {
+        addLog('❌ 异常: ' + String(err), 'err');
+        btn.textContent = '执行失败';
+    } finally {
+        setTimeout(() => { btn.disabled = false; if (btn.textContent === '执行失败') btn.textContent = '骁龙设备解标'; }, 2000);
+        isUnmarkBusy = false;
+    }
+}
+
+async function runTianjiUnmark() {
+    if (isUnmarkBusy) return;
+    if (!confirm('⚠️ 天玑解标清理\n会重置联发科底层特征和日志，请确认你的设备是联发科天玑处理器。\n执行后需重启设备。')) return;
+    
+    isUnmarkBusy = true;
+    const btn = $('btnTianjiUnmark'); btn.disabled = true; btn.textContent = '清理中...';
+    showToast('正在执行天玑解标...'); addLog('▶ 开始天玑硬件解标...', 'info');
+    
+    const scriptBase64 = btoa(unescape(encodeURIComponent(TIANJI_UNMARK_SCRIPT))); 
+    const cmd = `echo "${scriptBase64}" | (base64 -d 2>/dev/null || busybox base64 -d 2>/dev/null || toybox base64 -d 2>/dev/null) > /data/local/tmp/.tj.sh; chmod 755 /data/local/tmp/.tj.sh; sh /data/local/tmp/.tj.sh; rm -f /data/local/tmp/.tj.sh`;
+    
+    try {
+        const result = await x(cmd);
+        const out = (result.o || '') + '\n' + (result.s || '');
+        out.split('\n').forEach(line => { if (line.trim()) addLog(line.trim(), 'info'); });
+        addLog('✅ 天玑解标完成！', 'ok'); 
+        showToast('✅ 解标完成，请重启设备');
+        btn.textContent = '清理完成';
+        setTimeout(() => {
+            if (confirm('天玑解标成功！是否立即重启设备生效？')) x('reboot');
+        }, 1000);
+    } catch (err) {
+        addLog('❌ 异常: ' + String(err), 'err');
+        btn.textContent = '执行失败';
+    } finally {
+        setTimeout(() => { btn.disabled = false; if (btn.textContent === '执行失败') btn.textContent = '天玑设备解标'; }, 2000);
+        isUnmarkBusy = false;
+    }
+}
+
+// ================== 其他基础功能 ==================
+function handleScroll(top) {
+    const shouldCompact = top > 30;
+    if (shouldCompact !== statusCompact) { statusCompact = shouldCompact; statusHeroEl.classList.toggle('compact', shouldCompact); }
+}
+
+const PAGE_ORDER = ['page_home', 'page_config', 'page_model', 'page_about'];
+let currentPageIndex = 0;
+function getCurrentPageEl() { return document.getElementById(PAGE_ORDER[currentPageIndex]); }
+
+function goToPage(index, animate) {
+    if (index < 0) index = 0;
+    if (index >= PAGE_ORDER.length) index = PAGE_ORDER.length - 1;
+    currentPageIndex = index;
+    const pages = document.querySelectorAll('.page');
+    
+    pages.forEach((page, i) => {
+        if (animate) {
+            page.style.transition = 'transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.35s';
+        } else {
+            page.style.transition = 'none';
+        }
+
+        if (i === index) {
+            page.style.transform = 'translate3d(0, 0, 0)';
+            page.style.opacity = '1';
+            page.style.visibility = 'visible';
+            page.style.zIndex = '10';
+            page.style.pointerEvents = 'auto';
+            page.classList.add('active-page');
+        } else {
+            if (i < index) {
+                page.style.transform = 'translate3d(-100%, 0, 0)';
+            } else {
+                page.style.transform = 'translate3d(100%, 0, 0)';
+            }
+            page.style.opacity = '0';
+            page.style.visibility = 'hidden';
+            page.style.zIndex = '1';
+            page.style.pointerEvents = 'none';
+            page.classList.remove('active-page');
+        }
+    });
+
+    const tabBar = $('tabBar');
+    tabBar.classList.remove('tab-2', 'tab-3', 'tab-4');
+    if (index === 1) tabBar.classList.add('tab-2');
+    if (index === 2) tabBar.classList.add('tab-3');
+    if (index === 3) tabBar.classList.add('tab-4');
+    document.querySelectorAll('.tab-item').forEach(item => item.classList.toggle('active', item.dataset.page === PAGE_ORDER[index]));
+    const targetPage = document.getElementById(PAGE_ORDER[index]);
+    if (targetPage) targetPage.scrollTop = 0;
+    statusCompact = false; statusHeroEl.classList.remove('compact');
+}
+function switchPage(pageId) { const index = PAGE_ORDER.indexOf(pageId); if (index >= 0) goToPage(index, true); }
+window.addEventListener('resize', function() { goToPage(currentPageIndex, false); });
+
+let touchStartX = 0, touchStartY = 0, isDragging = false, directionLocked = null;
+function isSwipeBlocked(target) {
+    if (!target || !target.tagName) return false;
+    const tag = target.tagName.toUpperCase();
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'VIDEO' || tag === 'AUDIO') return true;
+    if (typeof target.closest === 'function') {
+        if (target.closest('.tab-bar') || target.closest('#videoPlayerCard') || target.closest('.video-controls') || target.closest('.log-box') || target.closest('.brand-header') || target.closest('.model-card') || target.closest('#targetPickerModal') || target.closest('.clickable-row')) return true;
+    }
+    return false;
+}
+
+scrollContentEl.addEventListener('touchstart', function(e) {
+    if (e.touches.length !== 1 || isSwipeBlocked(e.target)) { isDragging = false; directionLocked = null; return; }
+    touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; isDragging = true; directionLocked = null;
+}, { passive: true });
+
+scrollContentEl.addEventListener('touchmove', function(e) {
+    if (!isDragging || e.touches.length !== 1) return;
+    const dx = e.touches[0].clientX - touchStartX; const dy = e.touches[0].clientY - touchStartY;
+    if (!directionLocked) {
+        if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy) * 1.2) directionLocked = 'horizontal';
+        else if (Math.abs(dy) > 8 && Math.abs(dy) > Math.abs(dx)) directionLocked = 'vertical';
+    }
+    if (directionLocked === 'horizontal') {
+        e.preventDefault(); const W = window.innerWidth;
+        let currentPage = document.getElementById(PAGE_ORDER[currentPageIndex]); let nextPage = null; let isNext = false;
+        if (dx < 0 && currentPageIndex < PAGE_ORDER.length - 1) { nextPage = document.getElementById(PAGE_ORDER[currentPageIndex + 1]); isNext = true; } 
+        else if (dx > 0 && currentPageIndex > 0) { nextPage = document.getElementById(PAGE_ORDER[currentPageIndex - 1]); isNext = false; }
+        if (nextPage) {
+            let percent = Math.abs(dx) / W; if (percent > 1) percent = 1;
+            currentPage.style.transition = 'none'; nextPage.style.transition = 'none'; nextPage.style.pointerEvents = 'none';
+            nextPage.style.visibility = 'visible';
+            nextPage.style.opacity = `${percent * 1.5}`;
+            if (isNext) {
+                currentPage.style.transform = `translate3d(${dx}px, 0, 0)`; currentPage.style.opacity = `${1 - percent * 1.5}`; currentPage.style.zIndex = '10';
+                nextPage.style.transform = `translate3d(${W + dx}px, 0, 0)`; nextPage.style.zIndex = '5';
+            } else {
+                currentPage.style.transform = `translate3d(${dx}px, 0, 0)`; currentPage.style.opacity = `${1 - percent * 1.5}`; currentPage.style.zIndex = '10';
+                nextPage.style.transform = `translate3d(${-W + dx}px, 0, 0)`; nextPage.style.zIndex = '5';
+            }
+        }
+    }
+}, { passive: false });
+
+scrollContentEl.addEventListener('touchend', function(e) {
+    if (!isDragging) return; isDragging = false;
+    if (directionLocked !== 'horizontal') { directionLocked = null; return; }
+    directionLocked = null;
+    if (!e.changedTouches || !e.changedTouches.length) return;
+    const dx = e.changedTouches[0].clientX - touchStartX; const threshold = window.innerWidth * 0.25;
+    let targetIndex = currentPageIndex;
+    if (dx < -threshold && currentPageIndex < PAGE_ORDER.length - 1) targetIndex = currentPageIndex + 1;
+    else if (dx > threshold && currentPageIndex > 0) targetIndex = currentPageIndex - 1;
+    goToPage(targetIndex, true);
+}, { passive: true });
+
+scrollContentEl.addEventListener('touchcancel', function() { if (!isDragging) return; isDragging = false; directionLocked = null; goToPage(currentPageIndex, true); }, { passive: true });
+
+function toggleBrand(groupId) {
+    const groups = document.querySelectorAll('.brand-group');
+    groups.forEach(g => { if (g.dataset.group === groupId) g.classList.toggle('active'); else g.classList.remove('active'); });
+}
+
+function initModelPage() {
+    const saved = localStorage.getItem('selected_model'); if (saved && MODEL_DATA[saved]) currentSelectedModel = saved;
+    const container = document.getElementById('modelAccordionContainer'); let groups = {};
+    Object.keys(MODEL_DATA).forEach(k => {
+        const item = MODEL_DATA[k]; const g = item.group || 'other';
+        if(!groups[g]) groups[g] = []; groups[g].push({ id: k, name: item.name, props: item.props });
+    });
+    let html = '';
+    Object.keys(BRAND_NAMES).forEach(gKey => {
+        if(!groups[gKey] || groups[gKey].length === 0) return;
+        html += `<div class="brand-group" data-group="${gKey}"><div class="brand-header" onclick="toggleBrand('${gKey}')"><span>${BRAND_NAMES[gKey]}</span><div style="display:flex; align-items:center; gap:10px;"><span style="font-size:12px; font-weight:500; color:var(--text-muted);">${groups[gKey].length} 个机型</span><span class="arrow">▼</span></div></div><div class="brand-content">`;
+        groups[gKey].forEach(model => {
+            const isActive = (model.id === currentSelectedModel) ? 'active' : '';
+            html += `<div class="model-card ${isActive}" data-id="${model.id}" onclick="selectModel('${model.id}')"><div class="model-card-title">${model.name}</div><div class="model-card-sub">点击配置</div></div>`;
+        });
+        html += `</div></div>`;
+    });
+    container.innerHTML = html; updateModelUI();
+}
+
+function updateModelUI() {
+    document.querySelectorAll('.model-card').forEach(el => el.classList.toggle('active', el.dataset.id === currentSelectedModel));
+    const label = document.getElementById('currentModelLabel');
+    if (label) label.textContent = (currentSelectedModel && MODEL_DATA[currentSelectedModel]) ? MODEL_DATA[currentSelectedModel].name : '未选择';
+}
+
+async function selectModel(modelId) {
+    if (modelBusy) return; const data = MODEL_DATA[modelId]; if (!data) return;
+    if (currentSelectedModel === modelId) {
+        modelBusy = true; showToast('正在取消 ' + data.name + ' …'); addLog('▶ 正在取消全局机型伪装：' + data.name, 'info');
+        try {
+            const r = await x('rm -f /data/adb/service.d/kpad_model.sh /data/adb/modules/YUNAI_auto_2/system.prop; echo OK');
+            if ((r.o || '').indexOf('OK') >= 0) { currentSelectedModel = null; localStorage.removeItem('selected_model'); updateModelUI(); addLog('✅ 已取消', 'ok'); showToast('✅ 已取消'); }
+        } catch (e) { addLog('❌ 异常', 'err'); } finally { modelBusy = false; }
+        return;
+    }
+    modelBusy = true; showToast('正在切换为 ' + data.name + ' …'); addLog('▶ 正在应用全局机型伪装：' + data.name, 'info');
+    const propsEsc = data.props.replace(/'/g, "'\''");
+    const kpadEsc = MODEL_KPAD_SCRIPT.replace(/'/g, "'\''");
+    const backupCmd = `BAK=/data/adb/modules/YUNAI_auto_2/original_props.bak; if [ ! -f "$BAK" ]; then mkdir -p /data/adb/modules/YUNAI_auto_2; > "$BAK"; for p in ro.product.brand ro.product.manufacturer ro.product.model ro.product.device ro.product.name ro.build.product ro.build.fingerprint ro.hardware ro.board.platform ro.soc.model ro.soc.manufacturer ro.vendor.soc.model ro.vendor.qti.soc_model ro.build.version.release ro.build.version.sdk ro.build.id ro.build.version.incremental; do v=$(getprop "$p"); echo "$p=$v" >> "$BAK"; done; chmod 600 "$BAK"; fi`;
+    const cmd = `${backupCmd}; rm -f /data/adb/service.d/kpad2.sh /data/adb/service.d/kpad3.sh; mkdir -p /data/adb/modules/YUNAI_auto_2 && printf '%s' '${propsEsc}' > /data/adb/modules/YUNAI_auto_2/system.prop && chmod 777 /data/adb/modules/YUNAI_auto_2/system.prop && mkdir -p /data/adb/service.d && printf '%s' '${kpadEsc}' > /data/adb/service.d/kpad_model.sh && chmod 777 /data/adb/service.d/kpad_model.sh && echo OK`;
+    try {
+        const r = await x(cmd);
+        if ((r.o || '').indexOf('OK') >= 0) {
+            currentSelectedModel = modelId; localStorage.setItem('selected_model', modelId); updateModelUI();
+            addLog('✅ 已写入全局机型配置：' + data.name, 'ok'); addLog('ℹ️ 重启后完全生效，关于本机将显示该型号', 'info'); showToast('✅ 已切换为 ' + data.name);
+        } else { addLog('❌ 配置写入失败', 'err'); showToast('❌ 写入失败'); }
+    } catch (e) { addLog('❌ 执行异常', 'err'); showToast('❌ 执行异常'); } finally { modelBusy = false; }
+}
+
+async function restoreFromModelPage() {
+    if (modelBusy) return; if (!confirm('确定恢复原始机型吗？\n将移除所有机型伪装。')) return;
+    modelBusy = true; showToast('正在恢复原始机型…'); addLog('▶ 正在恢复原始机型…', 'info');
+    try {
+        const r = await x('rm -f /data/adb/service.d/kpad_model.sh /data/adb/service.d/kpad2.sh /data/adb/service.d/kpad3.sh /data/adb/modules/YUNAI_auto_2/system.prop; echo OK');
+        if ((r.o || '').indexOf('OK') >= 0) {
+            currentSelectedModel = null; localStorage.removeItem('selected_model'); updateModelUI();
+            addLog('✅ 已移除所有全局机型伪装', 'ok'); showToast('✅ 已恢复');
+            setTimeout(() => { if (confirm('已恢复，是否立即重启？')) x('reboot'); }, 800);
+        } else { addLog('❌ 恢复失败', 'err'); showToast('❌ 恢复失败'); }
+    } catch (e) { addLog('❌ 异常', 'err'); } finally { modelBusy = false; }
+}
+
+function showToast(msg) {
+    toastEl.textContent = msg; toastEl.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { toastEl.classList.remove('show'); }, 1800);
+}
+function addLog(msg, type) {
+    type = type || 'info'; const now = new Date().toTimeString().split(' ')[0];
+    const cls = { 'ok': 'ok', 'err': 'err', 'info': 'info' }[type] || 'info';
+    const line = document.createElement('div'); line.className = 'log-line';
+    line.innerHTML = `<span class="time">[${now}]</span> <span class="${cls}">${msg}</span>`;
+    logBox.appendChild(line); logCount++;
+    if (logCount > MAX_LOG_LINES) { logBox.removeChild(logBox.firstChild); logCount--; }
+    requestAnimationFrame(() => { logBox.scrollTop = logBox.scrollHeight; });
+}
+function setSwitch(switchId, isOn) { const el = $(switchId); if (el) el.checked = !!isOn; }
+async function loadKernelVersion() {
+    try { 
+        const r = await x('uname -r'); 
+        const v = (r.o || '').trim(); 
+        const el = document.getElementById('heroKernel'); 
+        if (el) el.textContent = v || (r.e === -2 ? '获取超时' : '未知'); 
+    } 
+    catch (e) { const el = document.getElementById('heroKernel'); if (el) el.textContent = '读取异常'; }
+}
+function onLinyuChange(e) { if (e.target.checked) startLinyuSoc(); else stopLinyuSoc(); }
+function onLinyu2Change(e) { if (e.target.checked) startLinyuSoc2(); else stopLinyuSoc2(); }
+function onMarkChange(e) { if (e.target.checked) startFixMark(); else { setSwitch('sw_mark', true); showToast('修改序列号无法关闭'); } }
+function onCleanChange(e) { if (e.target.checked) startCleanMain(); else { setSwitch('sw_clean', true); showToast('清理三角洲无法关闭'); } }
+
+async function startFixMark() {
+    if (isMarkBusy) return; isMarkBusy = true; setSwitch('sw_mark', true); addLog('正在修改序列号...', 'info');
+    try {
+        const script = '/data/adb/modules/YUNAI_auto_2/YUNAI/Mark';
+        await x(`test -f ${script} && sh ${script}`); addLog('✅ 序列号修改成功！准备重启...', 'ok'); showRebootOverlay();
+    } catch (err) { addLog('❌ 执行异常: ' + String(err), 'err'); setSwitch('sw_mark', false); isMarkBusy = false; }
+}
+
+function showRebootOverlay() {
+    let count = 3; let overlay = document.createElement('div'); overlay.id = 'rebootOverlay';
+    overlay.style.cssText = `position: fixed; inset: 0; z-index: 99999; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;`;
+    overlay.innerHTML = `<div style="background: rgba(255,255,255,0.95); padding: 24px 32px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); text-align: center; transform: translateY(10px); transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);" id="rebootCard"><div style="font-size: 36px; font-weight: 900; color: var(--accent-1); line-height: 1;" id="rebootNum">${count}</div><div style="font-size: 14px; margin-top: 12px; font-weight: 700; color: #3b3a4a;">底层配置更新完毕</div><div style="font-size: 11px; margin-top: 4px; color: #9d9cb0;">系统将在倒计时后自动重启</div></div>`;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => { overlay.style.opacity = '1'; document.getElementById('rebootCard').style.transform = 'translateY(0)'; });
+    const timer = setInterval(async () => {
+        count--; let numEl = document.getElementById('rebootNum');
+        if (numEl) {
+            if (count > 0) { numEl.textContent = count; numEl.style.transform = "scale(1.3)"; setTimeout(() => { if(numEl) numEl.style.transform = "scale(1)"; }, 200); } 
+            else { clearInterval(timer); numEl.textContent = "0"; numEl.style.color = "#34d399"; await x('reboot'); }
+        }
+    }, 1000);
+}
+
+const LINYU_ACTION_SCRIPT = `#!/system/bin/sh
+exec su -mm -c "
+clear
+/data/adb/modules/YUNAI_auto_2/YUNAI/LinYu过电报验证.sh
+/data/adb/modules/YUNAI_auto_2/LinyuStart.sh
+"`;
+async function startLinyuSoc() {
+    if (isLinyuBusy) return; isLinyuBusy = true; showToast('正在启动林羽内核①…'); addLog('正在启动林羽内核①…', 'info');
+    const scriptEsc = LINYU_ACTION_SCRIPT.replace(/'/g, "'\''");
+    const cmd = `TMP=/data/local/tmp/.linyu_action.sh; printf '%s' '${scriptEsc}' > $TMP; chmod 755 $TMP; nohup sh $TMP > /dev/null 2>&1 & (sleep 6; rm -f /data/local/tmp/.linyu_action.sh) & echo OK`;
+    try { await x(cmd); addLog('✅ 林羽内核①已后台启动', 'ok'); showToast('✅ 林羽内核①已启动'); } 
+    catch (err) { addLog('❌ 启动失败', 'err'); showToast('❌ 启动失败'); setSwitch('sw_linyu', false); } finally { isLinyuBusy = false; }
+}
+async function stopLinyuSoc() {
+    if (isLinyuBusy) return; isLinyuBusy = true; showToast('正在关闭林羽内核①…'); addLog('正在关闭林羽内核①…', 'info');
+    const cmd = `pkill -f "LinyuStart.sh"; pkill -f "林羽"; pkill -f "LinYu"`;
+    try { await x(cmd); addLog('✅ 林羽内核①已关闭', 'ok'); showToast('✅ 林羽内核①已关闭'); } 
+    catch (err) { addLog('❌ 关闭异常', 'err'); } finally { isLinyuBusy = false; }
+}
+
+const LINYU_ACTION2_SCRIPT = `#!/system/bin/sh
+exec su -mm -c "
+clear
+/data/adb/modules/YUNAI_auto_2/YUNAI/LinYu过电报验证.sh
+/data/adb/modules/YUNAI_auto_2/LinyuStart2.sh
+"`;
+async function startLinyuSoc2() {
+    if (isLinyu2Busy) return; isLinyu2Busy = true; showToast('正在启动林羽内核②…'); addLog('正在启动林羽内核②…', 'info');
+    const scriptEsc = LINYU_ACTION2_SCRIPT.replace(/'/g, "'\''");
+    const cmd = `TMP=/data/local/tmp/.linyu_action2.sh; printf '%s' '${scriptEsc}' > $TMP; chmod 755 $TMP; nohup sh $TMP > /dev/null 2>&1 & (sleep 6; rm -f /data/local/tmp/.linyu_action2.sh) & echo OK`;
+    try { await x(cmd); addLog('✅ 林羽内核②已后台启动', 'ok'); showToast('✅ 林羽内核②已启动'); } 
+    catch (err) { addLog('❌ 启动失败', 'err'); showToast('❌ 启动失败'); setSwitch('sw_linyu2', false); } finally { isLinyu2Busy = false; }
+}
+async function stopLinyuSoc2() {
+    if (isLinyu2Busy) return; isLinyu2Busy = true; showToast('正在关闭林羽内核②…'); addLog('正在关闭林羽内核②…', 'info');
+    const cmd = `pkill -f "LinyuStart2.sh"; pkill -f "林羽2"; pkill -f "LinYu2"`;
+    try { await x(cmd); addLog('✅ 林羽内核②已关闭', 'ok'); showToast('✅ 林羽内核②已关闭'); } 
+    catch (err) { addLog('❌ 关闭异常', 'err'); } finally { isLinyu2Busy = false; }
+}
+
+const LINYU_DRIVER_SCRIPT = `KERNEL_FULL=$(uname -r)
+echo "[信息] 完整内核版本: $KERNEL_FULL"
+MAIN_OPT=""
+SUB_OPT=""
+KERNEL_MAJOR=$(echo "$KERNEL_FULL" | cut -d '.' -f1-2)
+echo "[信息] 提取主内核版本: $KERNEL_MAJOR"
+case "$KERNEL_MAJOR" in
+5.10) MAIN_OPT="1"; SUB_OPT="1"; echo "[信息] 匹配 5.10 内核，子方案固定选1";;
+5.15) MAIN_OPT="2"; SUB_OPT="1"; echo "[信息] 匹配 5.15 内核，子方案固定选1";;
+6.1) MAIN_OPT="3"; SUB_OPT=""; echo "[信息] 匹配 6.1 内核，无二级子选项";;
+6.6) MAIN_OPT="4"; SUB_OPT=""; echo "[信息] 匹配 6.6 内核，无二级子选项";;
+6.12)
+    MAIN_OPT="5"
+    if echo "$KERNEL_FULL" | grep -q "android16-6"; then SUB_OPT="2"; echo "[信息] 匹配6.12内核，识别 android16-6 → B方案(2)";
+    elif echo "$KERNEL_FULL" | grep -q "android16-5"; then SUB_OPT="1"; echo "[信息] 匹配6.12内核，识别 android16-5 → A方案(1)";
+    else echo "[警告] 6.12内核，无法识别android子版本！"; exit 1; fi;;
+6.18) MAIN_OPT="6"; SUB_OPT=""; echo "[信息] 匹配 6.18 内核，无二级子选项";;
+*) echo "[错误] 无法识别内核主版本：$KERNEL_MAJOR"; exit 1;;
+esac
+INPUT_STR="$MAIN_OPT"
+if [ -n "$SUB_OPT" ]; then INPUT_STR="\${INPUT_STR}\n\${SUB_OPT}"; fi
+echo "======================"
+echo "[准备自动输入]"
+echo "$INPUT_STR"
+echo "======================"
+echo "[开始执行林羽驱动脚本]"
+echo "$INPUT_STR" | /data/adb/modules/YUNAI_auto_2/YUNAI/林羽驱动.sh
+RET_CODE=$?
+echo "[脚本执行结束，返回码: $RET_CODE]"
+if [ $RET_CODE -eq 0 ];then echo "✅ 任务完成"; else echo "❌ 脚本执行异常"; fi
+exit $RET_CODE`;
+
+async function runLinyuDriver() {
+    if (isLinyuDriverBusy) return; isLinyuDriverBusy = true;
+    const btn = $('btnLinyuDriver'); btn.disabled = true; btn.textContent = '刷入中...';
+    showToast('正在检测内核版本并刷入驱动...'); addLog('正在启动林羽驱动刷入流程...', 'info');
+    const scriptEsc = LINYU_DRIVER_SCRIPT.replace(/'/g, "'\''");
+    const cmd = `TMP=/data/local/tmp/.linyu_driver.sh; printf '%s' '${scriptEsc}' > $TMP; chmod 755 $TMP; sh $TMP; rm -f $TMP`;
+    try {
+        const result = await x(cmd);
+        const out = (result.o || '') + '\n' + (result.s || '');
+        out.split('\n').forEach(line => { if (line.trim()) addLog(line.trim(), 'info'); });
+        if (out.indexOf('❌') >= 0 || out.indexOf('错误') >= 0 || out.indexOf('警告') >= 0) {
+            addLog('❌ 刷入失败，请检查日志', 'err'); showToast('❌ 刷入失败'); btn.textContent = '重试';
+        } else if (out.indexOf('✅') >= 0) {
+            addLog('✅ 驱动装载完成！', 'ok'); showToast('✅ 装载完成！'); btn.textContent = '已完成';
+        } else {
+            addLog('⚠️ 执行结束，请查看日志', 'info'); showToast('⚠️ 请查看日志'); btn.textContent = '执行完成';
+        }
+    } catch (err) { addLog('❌ 执行异常: ' + String(err), 'err'); btn.textContent = '执行异常'; } 
+    finally { setTimeout(() => { btn.disabled = false; if (btn.textContent === '执行完成' || btn.textContent === '已完成') btn.textContent = '刷入'; }, 1500); isLinyuDriverBusy = false; }
+}
+
+var YN_SCRIPT = `#!/system/bin/sh
+PKG="com.tencent.tmgp.dfm"
+LOG_PREFIX="\\033[36m[INFO]\\033[0m"
+OK_PREFIX="\\033[32m[OK]\\033[0m"
+WARN_PREFIX="\\033[33m[WARN]\\033[0m"
+ERR_PREFIX="\\033[31m[ERR]\\033[0m"
+log_info() { echo "$LOG_PREFIX $*"; }
+log_ok() { echo "$OK_PREFIX $*"; }
+log_warn() { echo "$WARN_PREFIX $*"; }
+log_err() { echo "$ERR_PREFIX $*"; }
+clean_user() {
+    local uid="$1"
+    local user_data="/data/user/$uid/$PKG"
+    local user_storage="/storage/emulated/$uid/Android/data/$PKG"
+    [ ! -d "$user_data" ] && { log_warn "用户 $uid 未安装 $PKG，跳过"; return; }
+    log_info "清理用户 $uid ..."
+    rm -rf "$user_data/app_appcache"; rm -rf "$user_data/app_crashrecord"; rm -rf "$user_data/app_crashSight"; rm -rf "$user_data/app_databases"; rm -rf "$user_data/app_geolocation"; rm -rf "$user_data/app_midaslib_0"; rm -rf "$user_data/app_midaslib_1"; rm -rf "$user_data/app_midasodex"; rm -rf "$user_data/app_midasplugins"; rm -rf "$user_data/app_tbs"; rm -rf "$user_data/app_tbs_64"; rm -rf "$user_data/app_textures"; rm -rf "$user_data/app_texturespp_tbs_64"; rm -rf "$user_data/app_tbs_common_share"; rm -rf "$user_data/app_webview_msdk_inner_webview"; rm -rf "$user_data/app_webview"; rm -rf "$user_data/app_turingdfp"; rm -rf "$user_data/app_turingfd"; rm -rf "$user_data/app_turingsmi"; rm -rf "$user_data/cache"; rm -rf "$user_data/code_cache"; rm -rf "$user_data/databases"; rm -rf "$user_data/shared_prefs"; rm -rf "$user_data/files/ano_tmp"; rm -rf "$user_data/files/app"; rm -rf "$user_data/files/beacon"; rm -rf "$user_data/files/com.gcloudsdk.gcloud.gvoice"; rm -rf "$user_data/files/data"; rm -rf "$user_data/files/live_log"; rm -rf "$user_data/files/popup"; rm -rf "$user_data/files/qm"; rm -rf "$user_data/files/tdm_tmp"; rm -rf "$user_data/files/wupSCache"; rm -rf "$user_data/files/perfsight"; rm -rf "$user_data/files/shell_cache"; rm -rf "$user_data/files/apm_qcc_finally"; rm -rf "$user_data/files/apm_qcc"; rm -rf "$user_data/files/apm_qcc_preonce"; rm -rf "$user_data/files/apm_qcc_preonce_cache"; rm -rf "$user_data/files/hawk_data"; rm -rf "$user_data/files/itop_login.txt"; rm -rf "$user_data/files/jwt_token.txt"; rm -rf "$user_data/files/MSDK.mmap3"; rm -rf "$user_data/files/com.tencent.tdm.qimei.sdk.QimeiSDK"; rm -rf "$user_data/files/com.tencent.tbs.qimei.sdk.QimeiSDK"; rm -rf "$user_data/files/com.tencent.qimei.sdk.QimeiSDK"; rm -rf "$user_data/files/com.tencent.open.config.json.1110543085"; rm -rf "$user_data/files/.iii"; rm -rf "$user_data/files/.system_android_l2"; rm -rf "$user_data/files/ace_shell_di.dat"; rm -rf "$user_data/files/com.tencent.tmgp.dfm_core_godcmd_history"; rm -rf "$user_data/files/libwbsafeedit_64.so"; rm -rf "$user_data/files/login-identifier.txt"; rm -rf "$user_data/files/tdm_counter"; rm -rf "$user_data/files/tdm_track.dat"; rm -rf "$user_data/files/TRI_CM_AUDIT"; rm -rf "$user_data/files/tri_init"; rm -rf "$user_data/app_cn.wsds.sdk.game.data"
+    if [ -d "$user_data/files/UE4Game" ]; then
+        mv "$user_data/files/UE4Game" "$user_data/files/.UE4Game"; rm -rf "$user_data/files/"* 2>/dev/null; mv "$user_data/files/.UE4Game" "$user_data/files/UE4Game"
+        rm -rf "$user_data/files/UE4Game/DeltaForce/Engine"; rm -rf "$user_data/files/UE4Game/DeltaForce/Manifest_UFSFiles_Android.txt"; rm -rf "$user_data/files/UE4Game/DeltaForce/DeltaForce/Config"; rm -rf "$user_data/files/UE4Game/DeltaForce/DeltaForce/Intermediate"; rm -rf "$user_data/files/UE4Game/DeltaForce/DeltaForce/Saved/Gamelet"; rm -rf "$user_data/files/UE4Game/DeltaForce/DeltaForce/Saved/LoadTrack"; rm -rf "$user_data/files/UE4Game/DeltaForce/DeltaForce/Saved/pixuicache"; rm -rf "$user_data/files/UE4Game/DeltaForce/DeltaForce/Saved/Logs"
+    else rm -rf "$user_data/files/"* 2>/dev/null; fi
+    rm -rf "$user_data/files/."* 2>/dev/null
+    if [ -d "$user_storage" ]; then
+        rm -rf "$user_storage/cache"; rm -rf "$user_storage/files/App.1.201.37103.52"; rm -rf "$user_storage/files/env"; rm -rf "$user_storage/files/GVoiceCache"; rm -rf "$user_storage/files/midas"; rm -rf "$user_storage/files/pixui"; rm -rf "$user_storage/files/tbslog"; rm -rf "$user_storage/files/tencent"; rm -rf "$user_storage/files/EyPA"; rm -rf "$user_storage/files/VulkanProgramBinaryCache"; rm -rf "$user_storage/files/UE4Game/DeltaForce/DeltaForce/Saved/Logs"; rm -rf "$user_storage/files/.system_android_l2"; rm -rf "$user_storage/files/nbavmc_unxqbih.dat"; rm -rf "$user_storage/files/juscrkat.dat"; rm -rf "$user_storage/files/HANYCJLZOEUS_TOKEN2.dat"
+    fi
+    modify_user_ssaid "$uid"; log_ok "用户 $uid 清理完成"
+}
+modify_user_ssaid() {
+    local uid="$1"; local ssaid="/data/system/users/$uid/settings_ssaid.xml"
+    [ ! -f "$ssaid" ] && return;
+    command -v abx2xml >/dev/null 2>&1 || return; command -v xml2abx >/dev/null 2>&1 || return;
+    abx2xml -i "$ssaid"
+    local old_userkey=$(grep 'userkey' "$ssaid" | awk -F '"' '{print $6}')
+    local old_pkg=$(grep "$PKG" "$ssaid" | awk -F '"' '{print $6}')
+    [ -n "$old_userkey" ] && { local new_userkey=$(cat /proc/sys/kernel/random/uuid | tr -d - | head -c 32 | tr 'a-z' 'A-Z'); sed -i "s#$old_userkey#$new_userkey#g" "$ssaid"; }
+    [ -n "$old_pkg" ] && { local new_pkg=$(cat /proc/sys/kernel/random/uuid | tr -d - | head -c 16); sed -i "s#$old_pkg#$new_pkg#g" "$ssaid"; }
+    xml2abx -i "$ssaid"
+}
+modify_global_identity() {
+    log_info "开始修改全局设备标识..."
+    local old=$(getprop ro.serialno); local new=$(tr -dc '0-9' < /dev/urandom | head -c 8); resetprop ro.serialno "$new"
+    old=$(settings get secure android_id); new=$(tr -dc 'a-f0-9' < /dev/urandom | head -c 16); settings put secure android_id "$new"
+    old=$(getprop ro.build.id); new="UKQ1.$((RANDOM % 20000 + 30000)).001"; resetprop ro.build.id "$new"
+    old=$(getprop ro.boot.cpuid); new="0x00000$(tr -dc '0-9a-f' < /dev/urandom | head -c 11)"; resetprop ro.boot.cpuid "$new"
+    old=$(getprop ro.ril.oem.meid); new="9900$((RANDOM % 8000000000 + 1000000000))"; resetprop ro.ril.oem.meid "$new"
+    old=$(settings get global ad_aaid); new=$(cat /proc/sys/kernel/random/uuid); settings put global ad_aaid "$new"
+    new=$(cat /proc/sys/kernel/random/uuid); settings put global gcbooster_uuid "$new"; settings put global extm_uuid "$new"; settings put system key_mqs_uuid "$new"; settings put system local_uuid "$new"
+    [ -f "/data/system/oaid_persistence_0" ] && echo "$(tr -dc 'a-f0-9' < /dev/urandom | head -c 16)" > /data/system/oaid_persistence_0
+    [ -f "/data/system/vaid_persistence_platform" ] && echo "$(tr -dc 'a-f0-9' < /dev/urandom | head -c 16)" > /data/system/vaid_persistence_platform
+    old=$(getprop ro.build.fingerprint); [ -n "$old" ] && { new="$old"; for i in $(seq 1 $(echo "$old" | grep -o '[0-9]' | wc -l)); do new=$(echo "$new" | sed "s/[0-9]/$((RANDOM % 10))/1"); done; resetprop ro.build.fingerprint "$new"; }
+    for prop in $(getprop | grep imei | awk -F '[][]' '{print $2}'); do old=$(getprop "$prop"); if [ $(echo "$old" | wc -c) -ge 15 ]; then new="$(printf "%d%010d" $((RANDOM % 80000 + 8610000)) $((RANDOM % 10000000000)))"; resetprop "$prop" "$new"; fi; done
+    modify_mac
+    echo 16384 > /proc/sys/fs/inotify/max_queued_events; echo 128 > /proc/sys/fs/inotify/max_user_instances; echo 8192 > /proc/sys/fs/inotify/max_user_watches
+    iptables -F; iptables -X; iptables -Z; iptables -t nat -F
+    settings put global airplane_mode_on 1; am broadcast -a android.intent.action.AIRPLANE_MODE --ez state true; sleep 2; settings put global airplane_mode_on 0; am broadcast -a android.intent.action.AIRPLANE_MODE --ez state false
+    log_ok "全局标识修改完成"
+}
+modify_mac() {
+    local mac_file="/sys/class/net/wlan0/address"; [ ! -f "$mac_file" ] && return
+    local new=$(tr -dc 'a-f0-9' < /dev/urandom | head -c 12 | sed 's/../&:/g' | head -c 17)
+    svc wifi disable; ifconfig wlan0 down; sleep 1; ifconfig wlan0 hw ether "$new"; echo "$new" > "$mac_file"; local tmp="/data/local/tmp/mac_addr"; echo "$new" > "$tmp"; mount --bind "$tmp" "$mac_file"; ifconfig wlan0 up; svc wifi enable
+}
+system_optimize() {
+    echo "100" > /proc/sys/vm/swappiness; echo "500" > /proc/sys/vm/dirty_writeback_centisecs; echo "1000" > /proc/sys/vm/dirty_expire_centisecs; echo "0" > /proc/sys/vm/drop_caches; echo "3" > /proc/sys/vm/drop_caches; echo "0" > /proc/sys/net/ipv4/tcp_timestamps; echo "1" > /proc/sys/net/ipv4/tcp_tw_reuse; echo "1" > /proc/sys/net/ipv4/tcp_sack; echo "1" > /proc/sys/net/ipv4/tcp_dsack
+}
+reinstall_game() {
+    local apk_path=$(pm path "$PKG" | sed -E 's/(.*):(.*)/\\2/')
+    if [ -n "$apk_path" ]; then pm install -r --abi arm64-v8a "$apk_path"; fi
+}
+main() {
+    am force-stop "$PKG"
+    local users=$(ls /data/user/ 2>/dev/null | grep -E '^[0-9]+$'); [ -z "$users" ] && users="0"
+    for uid in $users; do clean_user "$uid"; done
+    modify_global_identity; system_optimize; reinstall_game
+}
+main 2>/dev/null`;
+
+async function startCleanMain() {
+    if (isCleanBusy) return; isCleanBusy = true;
+    showToast('正在清理三角洲…'); addLog('正在执行全盘深度清理...', 'info');
+    const scriptEsc = YN_SCRIPT.replace(/'/g, "'\''");
+    const cmd = `TMP=/data/local/tmp/.yn_clean.sh; printf '%s' '${scriptEsc}' > $TMP; chmod 755 $TMP; sync; sleep 0.3; nohup sh $TMP > /dev/null 2>&1 & echo $!`;
+    try {
+        const start = await x(cmd);
+        const lines = (start.o || '').split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
+        let pid = ''; for (let i = lines.length - 1; i >= 0; i--) { if (/^\d+$/.test(lines[i])) { pid = lines[i]; break; } }
+        if (!pid) { addLog('❌ 无法获取进程', 'err'); setSwitch('sw_clean', false); isCleanBusy = false; return; }
+        addLog('✅ 清理已在后台运行', 'ok'); showToast('✅ 清理运行中');
+        if (cleanPollTimer) clearInterval(cleanPollTimer);
+        cleanPollTimer = setInterval(async function() {
+            const r = await x('kill -0 ' + pid + ' 2>/dev/null && echo alive || echo dead');
+            if ((r.o || '').trim() === 'dead') {
+                clearInterval(cleanPollTimer); cleanPollTimer = null;
+                addLog('✅ 深度清理已完成，请重启设备', 'ok'); showToast('✅ 清理已完成'); isCleanBusy = false;
+            }
+        }, 2000);
+    } catch (err) { addLog('❌ 异常', 'err'); setSwitch('sw_clean', false); isCleanBusy = false; }
+}
+
+const WL1_SYSPROP = `ro.product.brand=Redmi\nro.product.manufacturer=Xiaomi\nro.product.model=24129RK100C\nro.product.device=k100\nro.product.name=k100\nro.build.product=k100\nro.build.fingerprint=Redmi/k100/k100:15/AQ3A.240812.002/OS2.0.1.0.VNLCNXM:user/release-keys\n\npersist.sys.prestart.proc=false`;
+const WL2_SYSPROP = `ro.product.brand=OnePlus\nro.product.manufacturer=OnePlus\nro.product.model=PJZ110\nro.product.device=OP5D35L1\nro.product.name=OP5D35L1\nro.build.product=OP5D35L1\nro.build.fingerprint=OnePlus/PJZ110/OP5D35L1:15/AQ3A.240812.002/1730000000000:user/release-keys`;
+const WL_KPAD_SCRIPT = `#!/system/bin/sh
+while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 1; done
+sleep 5
+resetprop -n ro.hardware qcom
+resetprop -n ro.board.platform sm8750
+resetprop -n ro.soc.model SM8750
+resetprop -n ro.soc.manufacturer QTI
+resetprop -n ro.vendor.soc.model SM8750
+resetprop -n ro.vendor.qti.soc_model SM8750
+if [ -f "/data/adb/modules/YUNAI_auto_2/system.prop" ]; then
+    while IFS='=' read -r key value; do
+        if [ -n "$key" ] && [ "\${key:0:1}" != "#" ]; then resetprop -n "$key" "$value"; fi
+    done < /data/adb/modules/YUNAI_auto_2/system.prop
+fi`;
+const MODEL_KPAD_SCRIPT = `#!/system/bin/sh
+while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 1; done
+sleep 5
+if [ -f "/data/adb/modules/YUNAI_auto_2/system.prop" ]; then
+    while IFS='=' read -r key value; do
+        if [ -n "$key" ] && [ "\${key:0:1}" != "#" ]; then resetprop -n "$key" "$value"; fi
+    done < /data/adb/modules/YUNAI_auto_2/system.prop
+fi`;
+const RESTORE_DEVICE_SCRIPT = `#!/system/bin/sh
+rm -f /data/adb/service.d/kpad2.sh
+rm -f /data/adb/service.d/kpad3.sh
+rm -f /data/adb/service.d/kpad_model.sh
+rm -f /data/adb/modules/YUNAI_auto_2/system.prop
+for p in ro.product.brand ro.product.manufacturer ro.product.model \\
+         ro.product.device ro.product.name ro.build.product \\
+         ro.build.fingerprint ro.hardware ro.board.platform \\
+         ro.soc.model ro.soc.manufacturer \\
+         ro.vendor.soc.model ro.vendor.qti.soc_model \\
+         ro.build.version.release ro.build.version.sdk \\
+         ro.build.id ro.build.version.incremental \\
+         ro.build.version.security_patch ro.vendor.build.security_patch \\
+         ro.build.date ro.build.date.utc; do
+    resetprop --delete "$p" 2>/dev/null
+done
+BAK=/data/adb/modules/YUNAI_auto_2/original_props.bak
+if [ -f "$BAK" ]; then
+    while IFS='=' read -r k v; do
+        [ -z "$k" ] && continue; [ -z "$v" ] && continue; [ "$v" = "unknown" ] && continue
+        resetprop -n "$k" "$v" 2>/dev/null
+    done < "$BAK"
+    echo "OK"
+else echo "OK"; fi`;
+
+function isOk(o) { if (!o || !o.trim()) return false; if (o.indexOf('FAIL') >= 0) return false; if (o.indexOf('失败') >= 0 && o.indexOf('成功') < 0) return false; return true; }
+function setStatusMsg(msg, isSuccess) { var st = document.getElementById('st'); if (!st) return; var label = st.querySelector('.highlight'); if (label) { label.textContent = msg; label.style.color = isSuccess ? 'var(--green)' : 'var(--red)'; } }
+
+const IDENTITY_GUARD_SCRIPT = `#!/system/bin/sh
+set +e
+MODDIR="\${0%/*}"
+SAVED="/data/adb/device_spoofer_values.conf"
+generate_new_values(){
+    REAL_BRAND=$(getprop ro.product.brand); REAL_MODEL=$(getprop ro.product.model); REAL_DEV=$(getprop ro.product.device)
+    REAL_SN=$(getprop ro.serialno); REAL_IMEI1=$(getprop gsm.imei); REAL_IMEI2=$(getprop gsm.imei2)
+    REAL_WIFI=$(ip link show wlan0 2>/dev/null | awk '/link\/ether/ {print $2}'); REAL_BT=$(getprop net.bluetooth.mac)
+    REAL_BHOST=$(getprop ro.build.host); REAL_BUSER=$(getprop ro.build.user)
+    REAL_CPUD=$(cat /sys/devices/soc0/serial_number 2>/dev/null || getprop ro.hardware.cpuid 2>/dev/null || echo '')
+    REAL_OEMD=$(getprop ro.oem.id 2>/dev/null || getprop ro.boot.oem_id 2>/dev/null || echo '')
+    CUR_ANDROIDVER=$(getprop ro.build.version.release); [ -z "$CUR_ANDROIDVER" ] && CUR_ANDROIDVER="16"
+    CUR_BUILDTYPE=$(getprop ro.build.type); [ -z "$CUR_BUILDTYPE" ] && CUR_BUILDTYPE="user"
+    CUR_BUILDTAGS=$(getprop ro.build.tags); [ -z "$CUR_BUILDTAGS" ] && CUR_BUILDTAGS="release-keys"
+GEN=$(awk -v pid="$$" -v t="$(date +%s)" -v androidver="$CUR_ANDROIDVER" -v buildtype="$CUR_BUILDTYPE" -v buildtags="$CUR_BUILDTAGS" -v real_brand="$REAL_BRAND" -v real_model="$REAL_MODEL" -v real_dev="$REAL_DEV" -v real_sn="$REAL_SN" -v real_imei1="$REAL_IMEI1" -v real_imei2="$REAL_IMEI2" -v real_wifi="$REAL_WIFI" -v real_bt="$REAL_BT" -v real_bhost="$REAL_BHOST" -v real_cpuid="$REAL_CPUD" -v real_oemid="$REAL_OEMD" 'BEGIN{
+        srand(t + pid); hex_c = "0123456789abcdef"; num_c = "0123456789"; mac_c = "0123456789ABCDEF"; sn_c = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        sn_len = length(real_sn)
+        if (sn_len > 2) { sn = substr(real_sn, 1, 2); for(i=0; i<sn_len-2; i++) sn = sn substr(sn_c, int(rand()*length(sn_c))+1, 1) } else { sn = "3B"; for(i=0;i<14;i++) sn = sn substr(sn_c, int(rand()*length(sn_c))+1, 1) }
+        aid = ""; for(i=0;i<16;i++) aid = aid substr(hex_c, int(rand()*length(hex_c))+1, 1)
+        if (length(real_imei1) >= 14) { tac1 = substr(real_imei1, 1, 8); ser1 = ""; for(i=0;i<6;i++) ser1 = ser1 substr(num_c, int(rand()*length(num_c))+1, 1); base1 = tac1 ser1; sum1 = 0; for(i=1; i<=14; i++) { d1 = substr(base1, i, 1) + 0; if (i % 2 == 0) { d1 = d1 * 2; if (d1 > 9) d1 = d1 - 9 } sum1 += d1 } chk1 = (10 - (sum1 % 10)) % 10; i1 = base1 chk1 } else { i1 = ""; for(i=0;i<15;i++) i1 = i1 substr(num_c, int(rand()*length(num_c))+1, 1) }
+        if (length(real_imei2) >= 14) { tac2 = substr(real_imei2, 1, 8); ser2 = ""; for(i=0;i<6;i++) ser2 = ser2 substr(num_c, int(rand()*length(num_c))+1, 1); base2 = tac2 ser2; sum2 = 0; for(i=1; i<=14; i++) { d2 = substr(base2, i, 1) + 0; if (i % 2 == 0) { d2 = d2 * 2; if (d2 > 9) d2 = d2 - 9 } sum2 += d2 } chk2 = (10 - (sum2 % 10)) % 10; i2 = base2 chk2 } else { i2 = ""; for(i=0;i<15;i++) i2 = i2 substr(num_c, int(rand()*length(num_c))+1, 1) }
+        if (length(real_wifi) >= 17) { split(real_wifi, wp, ":"); wf = wp[1] ":" wp[2] ":" wp[3]; for(i=0;i<3;i++) { wf = wf ":"; for(j=0;j<2;j++) wf = wf substr(mac_c, int(rand()*length(mac_c))+1, 1) } } else { wf = "02"; for(i=0;i<5;i++) { wf = wf ":"; for(j=0;j<2;j++) wf = wf substr(mac_c, int(rand()*length(mac_c))+1, 1) } }
+        if (length(real_bt) >= 17) { split(real_bt, bp, ":"); bt = bp[1] ":" bp[2] ":" bp[3]; for(i=0;i<3;i++) { bt = bt ":"; for(j=0;j<2;j++) bt = bt substr(mac_c, int(rand()*length(mac_c))+1, 1) } } else { bt = "02"; for(i=0;i<5;i++) { bt = bt ":"; for(j=0;j<2;j++) bt = bt substr(mac_c, int(rand()*length(mac_c))+1, 1) } }
+        bid = "BP2A."; for(i=0;i<6;i++) bid = bid substr(num_c, int(rand()*length(num_c))+1, 1); bid = bid "."; for(i=0;i<3;i++) bid = bid substr(num_c, int(rand()*length(num_c))+1, 1)
+        incr = "B."; for(i=0;i<7;i++) incr = incr substr(num_c, int(rand()*length(num_c))+1, 1); incr = incr "-"; for(i=0;i<7;i++) incr = incr substr(hex_c, int(rand()*length(hex_c))+1, 1); incr = incr "-"; for(i=0;i<7;i++) incr = incr substr(hex_c, int(rand()*length(hex_c))+1, 1)
+        bhost = "dg"; for(i=0;i<2;i++) bhost = bhost substr(num_c, int(rand()*length(num_c))+1, 1); bhost = bhost "-pool"; for(i=0;i<2;i++) bhost = bhost substr(num_c, int(rand()*length(num_c))+1, 1); bhost = bhost "-kvm"; for(i=0;i<2;i++) bhost = bhost substr(num_c, int(rand()*length(num_c))+1, 1)
+        buser = "root"
+        fp = real_brand "/" real_model "/" real_dev ":" androidver "/" bid "/" incr ":" buildtype "/" buildtags
+        adid = ""; for(i=0;i<8;i++) adid = adid substr(hex_c, int(rand()*length(hex_c))+1, 1); adid = adid "-"; for(i=0;i<4;i++) adid = adid substr(hex_c, int(rand()*length(hex_c))+1, 1); adid = adid "-"; for(i=0;i<4;i++) adid = adid substr(hex_c, int(rand()*length(hex_c))+1, 1); adid = adid "-"; for(i=0;i<4;i++) adid = adid substr(hex_c, int(rand()*length(hex_c))+1, 1); adid = adid "-"; for(i=0;i<12;i++) adid = adid substr(hex_c, int(rand()*length(hex_c))+1, 1)
+        oaid = ""; for(i=0;i<8;i++) oaid = oaid substr(hex_c, int(rand()*length(hex_c))+1, 1); oaid = oaid "-"; for(i=0;i<4;i++) oaid = oaid substr(hex_c, int(rand()*length(hex_c))+1, 1); oaid = oaid "-"; for(i=0;i<4;i++) oaid = oaid substr(hex_c, int(rand()*length(hex_c))+1, 1); oaid = oaid "-"; for(i=0;i<4;i++) oaid = oaid substr(hex_c, int(rand()*length(hex_c))+1, 1); oaid = oaid "-"; for(i=0;i<12;i++) oaid = oaid substr(hex_c, int(rand()*length(hex_c))+1, 1)
+        vaid = ""; for(i=0;i<8;i++) vaid = vaid substr(hex_c, int(rand()*length(hex_c))+1, 1); vaid = vaid "-"; for(i=0;i<4;i++) vaid = vaid substr(hex_c, int(rand()*length(hex_c))+1, 1); vaid = vaid "-"; for(i=0;i<4;i++) vaid = vaid substr(hex_c, int(rand()*length(hex_c))+1, 1); vaid = vaid "-"; for(i=0;i<4;i++) vaid = vaid substr(hex_c, int(rand()*length(hex_c))+1, 1); vaid = vaid "-"; for(i=0;i<12;i++) vaid = vaid substr(hex_c, int(rand()*length(hex_c))+1, 1)
+        if (length(real_cpuid) > 0) { cpuid = ""; for(i=0; i<length(real_cpuid); i++) cpuid = cpuid substr(num_c, int(rand()*length(num_c))+1, 1) } else { cpuid = "" }
+        if (length(real_oemid) > 0) { oemid = ""; for(i=0; i<length(real_oemid); i++) oemid = oemid substr(num_c, int(rand()*length(num_c))+1, 1) } else { oemid = "" }
+        print "SERIAL=" sn; print "ANDROID_ID=" aid; print "IMEI1=" i1; print "IMEI2=" i2; print "WIFI_MAC=" wf; print "BT_MAC=" bt; print "FINGERPRINT=" fp; print "BUILD_ID=" bid; print "INCREMENTAL=" incr; print "BUILD_HOST=" bhost; print "BUILD_USER=" buser; print "AD_ID=" adid; print "OAID=" oaid; print "VAID=" vaid; print "CPU_ID=" cpuid; print "OEM_ID=" oemid
+    }')
+    if [ -n "$GEN" ]; then printf '%s\\n' "$GEN" > "$SAVED"; echo "ANDROID_VER=$CUR_ANDROIDVER" >> "$SAVED"; chmod 600 "$SAVED"; else echo "ERROR"; exit 1; fi
+}
+apply_ids(){
+    . "$SAVED"
+    resetprop -n ro.serialno "$SERIAL" 2>/dev/null; resetprop -n persist.sys.serialno "$SERIAL" 2>/dev/null; resetprop -n ro.boot.serialno "$SERIAL" 2>/dev/null
+    settings put secure android_id "$ANDROID_ID" 2>/dev/null || settings --user 0 put secure android_id "$ANDROID_ID" 2>/dev/null
+    resetprop -n persist.radio.imei "$IMEI1" 2>/dev/null; resetprop -n persist.radio.imei2 "$IMEI2" 2>/dev/null; resetprop -n gsm.imei "$IMEI1" 2>/dev/null; resetprop -n gsm.imei2 "$IMEI2" 2>/dev/null; resetprop -n ro.ril.oem.imei "$IMEI1" 2>/dev/null; resetprop -n ro.ril.oem.imei2 "$IMEI2" 2>/dev/null
+    if ip link show wlan0 >/dev/null 2>&1; then ip link set wlan0 down 2>/dev/null; ip link set wlan0 address "$WIFI_MAC" 2>/dev/null; ip link set wlan0 up 2>/dev/null; resetprop -n persist.wlan.mac "$WIFI_MAC" 2>/dev/null; fi
+    resetprop -n persist.service.bluetooth.mac "$BT_MAC" 2>/dev/null; resetprop -n net.bluetooth.mac "$BT_MAC" 2>/dev/null; resetprop -n persist.service.bdroid.btaddr "$BT_MAC" 2>/dev/null
+    resetprop -n ro.build.fingerprint "$FINGERPRINT" 2>/dev/null; resetprop -n ro.bootimage.build.fingerprint "$FINGERPRINT" 2>/dev/null; resetprop -n ro.odm.build.fingerprint "$FINGERPRINT" 2>/dev/null; resetprop -n ro.system.build.fingerprint "$FINGERPRINT" 2>/dev/null; resetprop -n ro.vendor.build.fingerprint "$FINGERPRINT" 2>/dev/null; resetprop -n ro.product.build.fingerprint "$FINGERPRINT" 2>/dev/null; resetprop -n ro.system_ext.build.fingerprint "$FINGERPRINT" 2>/dev/null; resetprop -n ro.vendor_dlkm.build.fingerprint "$FINGERPRINT" 2>/dev/null
+    resetprop -n ro.build.id "$BUILD_ID" 2>/dev/null; resetprop -n ro.build.display.id "$BUILD_ID" 2>/dev/null; resetprop -n ro.build.version.incremental "$INCREMENTAL" 2>/dev/null; resetprop -n ro.build.host "$BUILD_HOST" 2>/dev/null; resetprop -n ro.build.user "$BUILD_USER" 2>/dev/null
+    resetprop -n persist.sys.oaid "$OAID" 2>/dev/null; resetprop -n persist.sys.vaid "$VAID" 2>/dev/null; settings put secure advertising_id "$AD_ID" 2>/dev/null; resetprop -n persist.sys.gps.adid "$AD_ID" 2>/dev/null
+    if [ -n "$CPU_ID" ]; then resetprop -n ro.hardware.cpuid "$CPU_ID" 2>/dev/null; echo "$CPU_ID" > /data/adb/device_spoofer_fake_cpuid 2>/dev/null; if [ -f /sys/devices/soc0/serial_number ]; then mount --bind /data/adb/device_spoofer_fake_cpuid /sys/devices/soc0/serial_number 2>/dev/null; fi; fi
+    if [ -n "$OEM_ID" ]; then resetprop -n ro.oem.id "$OEM_ID" 2>/dev/null; resetprop -n ro.boot.oem_id "$OEM_ID" 2>/dev/null; fi
+    for pkg in com.deviceid.viewer com.liuzh.deviceinfo com.xiaohan.deviceid; do am force-stop "$pkg" 2>/dev/null; done
+}
+_T="/data/adb/modules/YUNAI_auto_2/identity.token"; _B="/data/adb/modules/YUNAI_auto_2/identity.backup"; _C="/data/adb/modules/YUNAI_auto_2/identity_guard.conf"
+_ok(){ echo OK; }; _fail(){ echo FAIL; exit 1; }
+_bk(){ [ -f "$_B" ] && return 0; mkdir -p /data/adb/modules/YUNAI_auto_2/YUNAI/; s=$(getprop ro.serialno 2>/dev/null); [ -z "$s" -o "$s" = "unknown" ] && s=$(getprop persist.sys.serialno 2>/dev/null); [ -z "$s" -o "$s" = "unknown" ] && s=$(getprop ro.boot.serialno 2>/dev/null); [ -z "$s" ] && s="unknown"; a=$(settings get secure android_id 2>/dev/null); [ -z "$a" ] && a="unknown"; printf 'SERIAL=%s\\nANDROID_ID=%s\\n' "$s" "$a" > "$_B"; chmod 600 "$_B" 2>/dev/null; }
+_apply(){
+  _bk
+  if [ -f "$_T" ]; then b0=$(cat "$_T" 2>/dev/null | head -1 | tr -d '\\r\\n'); if [ -n "$b0" ] && [ \${#b0} -ge 8 ]; then resetprop -n ro.serialno "$b0" 2>/dev/null; resetprop -n persist.sys.serialno "$b0" 2>/dev/null; resetprop -n ro.boot.serialno "$b0" 2>/dev/null; _ok; return 0; fi; fi
+  b0="3B$(tr -dc 'ACDEFGHJKLM9APIZXY2-9' </dev/urandom 2>/dev/null | head -c14)"; [ \${#b0} -lt 12 ] && b0="3B$(printf '%014X' $((RANDOM*RANDOM+$$)) | head -c14)"
+  resetprop -n ro.serialno "$b0" 2>/dev/null; resetprop -n persist.sys.serialno "$b0" 2>/dev/null; resetprop -n ro.boot.serialno "$b0" 2>/dev/null
+  c0=$(tr -dc '0123456789ABCDEF' </dev/urandom 2>/dev/null | head -c16); [ -z "$c0" ] && c0=$(printf '%016X' $((RANDOM<<14|RANDOM|$$))); settings put secure android_id "$c0" 2>/dev/null || settings --user 0 put secure android_id "$c0" 2>/dev/null
+  mkdir -p /data/adb/modules/YUNAI_auto_2/YUNAI/; echo "$b0" > "$_T"; chmod 600 "$_T" 2>/dev/null; _ok
+}
+_force(){ _bk; rm -f "$_T"; _apply; }
+_restore(){ [ -f "$_B" ] || _fail; serial=$(grep -E '^SERIAL=' "$_B" 2>/dev/null | cut -d= -f2- | tr -d '\\r\\n'); aid=$(grep -E '^ANDROID_ID=' "$_B" 2>/dev/null | cut -d= -f2- | tr -d '\\r\\n'); [ -z "$serial" -o "$serial" = "unknown" ] && _fail; resetprop -n ro.serialno "$serial" 2>/dev/null; resetprop -n persist.sys.serialno "$serial" 2>/dev/null; resetprop -n ro.boot.serialno "$serial" 2>/dev/null; [ -n "$aid" -a "$aid" != "unknown" ] && settings put secure android_id "$aid" 2>/dev/null; rm -f "$_T"; mkdir -p /data/adb/modules/YUNAI_auto_2/YUNAI/; echo -e "# ZV\\nENABLED_IDENTITY_GUARD=0" > "$_C"; _ok }
+if [ $# -eq 0 ]; then generate_new_values; apply_ids; echo "OK"; exit 0; else case "$1" in force|regen) _force ;; restore|original) _restore ;; *) exit 1 ;; esac; fi
+`;
+
+document.addEventListener('DOMContentLoaded', function() { initAuth(); });
+</script>
+</body>
+</html>
